@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<title>SCADA Monitoring Dashboard</title>
+
+<div class="content">
+    <div id="page-container">
+        <div id="pf1" class="pf w0 h0" data-page-no="1">
+            <div class="pc pc1 w0 h0">
+                <!-- Background image -->
+                <img class="bi x0 y0 w1 h1" alt="SCADA System Layout" src="static/images/scada.png"/>
+                
+                <!-- Status indicator boxes for crushers -->
+                <!-- Group 1 -->
+                <div class="box" id="crusher1-box" style="top: 44px; left: 29px;"></div>
+                <div class="box" id="crusher2-box" style="top: 127px; left: 29px;"></div>
+                
+                <!-- Group 2 -->
+                <div class="box1" id="crusher3-box" style="top: 141px; left: 172px;"></div>
+                <div class="box1" id="crusher4-box" style="top: 141px; left: 200.5px;"></div>
+                
+                <!-- Group 3 -->
+                <div class="box2" id="crusher5-box" style="top: 244px; left: 61px;"></div>
+                
+                <!-- Group 4 -->
+                <div class="box3" id="crusher6-box" style="top: 215px; left: 302px;"></div>
+                <div class="box3" id="crusher7-box" style="top: 215px; left: 347.5px;"></div>
+                <div class="box3" id="crusher8-box" style="top: 215px; left: 379.5px;"></div>
+                
+                <!-- Group 5 -->
+                <div class="box4" id="crusher9-box" style="top: 90px; left: 626px;"></div>
+                <div class="box4" id="crusher10-box" style="top: 103px; left: 626px;"></div>
+                <div class="box4" id="crusher11-box" style="top: 117px; left: 626px;"></div>
+                
+                <!-- Group 6 -->
+                <div class="box5" id="crusher12-box" style="top: 204px; left: 634px;"></div>
+                <div class="box5" id="crusher13-box" style="top: 218px; left: 634px;"></div>
+                <div class="box5" id="crusher14-box" style="top: 229.5px; left: 634px;"></div>
+                
+                <!-- Group 7 -->
+                <div class="box6" id="crusher15-box" style="top: 215px; left: 816px;"></div>
+                <div class="box6" id="crusher16-box" style="top: 215px; left: 863px;"></div>
+                <div class="box6" id="crusher17-box" style="top: 215px; left: 890px;"></div>
+                
+                <!-- Group 8 -->
+                <div class="box7" id="crusher18-box" style="top: 370px; left: 591px;"></div>
+                <div class="box7" id="crusher19-box" style="top: 370px; left: 560px;"></div>
+                
+                <!-- Other equipment boxes -->
+                <div class="box8" id="crusher20-box" style="top: 157px; left: 738px;"></div>
+                <div class="box9" id="crusher21-box" style="top: 142px; left: 713px;"></div>
+                <div class="box10" id="crusher22-box" style="top: 103px; left: 712px;"></div>
+                <div class="box11" id="crusher23-box" style="top: 27px; left: 819px;"></div>
+                <div class="box12" id="crusher24-box" style="top: 26px; left: 430px;"></div>
+                
+                <!-- Labels and measurements -->
+                <div class="c x0 y1 w2 h0">
+                    <!-- Crusher labels -->
+                    <div class="t m0 x1 h2 y3 ff1 fs0 fc0 sc0 ls4 wsb">Crusher 1</div>
+                    <div class="t m0 x1 h2 y2 ff1 fs0 fc0 sc0 ls4 wsb">Crusher 2</div>
+                    
+                    <!-- Measurement readings -->
+                    <div class="t m0 x29 he y3a ff1 fs4 fc1 sc0 ls4 wsb">20.02,</div>
+                    <div class="t m0 x2a he y3b ff1 fs4 fc1 sc0 ls4 ws9">80.55</div>
+                    <div class="t m0 x2b he y3c ff1 fs4 fc1 sc0 ls4 wsb">10.40,</div>
+                    <div class="t m0 xf he y3d ff1 fs4 fc1 sc0 ls4 ws9">50.75</div>
+                    <div class="t m0 x2c he y3e ff1 fs4 fc1 sc0 ls4 wsb">60.45,</div>
+                    <div class="t m0 x2d he y3f ff1 fs4 fc1 sc0 ls4 ws9">70.32</div>
+                    <div class="t m0 x2e he y40 ff1 fs4 fc1 sc0 ls4 wsb">50.406</div>
+                    <div class="t m0 x2f he y41 ff1 fs4 fc1 sc0 ls4 ws9">60.10</div>
+                    <div class="t m0 x30 he y42 ff1 fs4 fc1 sc0 ls4 ws9">20.15</div>
+                    <div class="t m0 x31 he y43 ff1 fs4 fc1 sc0 ls4 ws9">40.25</div>
+                    <div class="t m0 x32 he y44 ff1 fs4 fc1 sc0 ls4 ws9">40.23</div>
+                    <div class="t m0 x33 he y45 ff1 fs4 fc1 sc0 ls4 ws9">110.15</div>
+                    <div class="t m1 x34 hf y46 ff1 fs5 fc1 sc0 ls4 wsa">90.06,</div>
+                    <div class="t m1 x35 hf y46 ff1 fs5 fc1 sc0 ls4 wsa">50.40</div>
+                    <div class="t m0 x36 he y47 ff1 fs4 fc1 sc0 ls4 ws9">22.90</div>
+                    <div class="t m0 x37 he y48 ff1 fs4 fc1 sc0 ls4 ws9">30.44</div>
+                    <div class="t m0 x29 he y49 ff1 fs4 fc1 sc0 ls4 wsb">30.04,</div>
+                    <div class="t m0 x2a he y4a ff1 fs4 fc1 sc0 ls4 ws9">55.05</div>
+                    <!-- Additional readings -->
+                    <div class="t m0 xd he y4e ff1 fs4 fc1 sc0 ls4 ws9">99.99</div>
+                    <div class="t m0 x39 he y4f ff1 fs4 fc1 sc0 ls4 ws9">99.99</div>
+                </div>
+            </div>
+            <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
+        </div>
+    </div>
+    <div class="loading-indicator"></div>
+</div>
+
+<!-- Status update script -->
+<script>
+    function updateBoxColors() {
+        // Set color indicators for crusher status (green = operating, red = stopped/issue)
+        document.getElementById('crusher1-box').classList.add('green');
+        document.getElementById('crusher2-box').classList.add('red');
+        document.getElementById('crusher3-box').classList.add('green');
+        document.getElementById('crusher4-box').classList.add('red');
+        document.getElementById('crusher5-box').classList.add('green');
+        document.getElementById('crusher6-box').classList.add('red');
+        document.getElementById('crusher7-box').classList.add('green');
+        document.getElementById('crusher8-box').classList.add('red');
+        document.getElementById('crusher9-box').classList.add('green');
+        document.getElementById('crusher10-box').classList.add('red');
+        document.getElementById('crusher11-box').classList.add('red');
+        document.getElementById('crusher12-box').classList.add('green');
+        document.getElementById('crusher13-box').classList.add('red');
+        document.getElementById('crusher14-box').classList.add('green');
+        document.getElementById('crusher15-box').classList.add('red');
+        document.getElementById('crusher16-box').classList.add('green');
+        document.getElementById('crusher17-box').classList.add('red');
+        document.getElementById('crusher18-box').classList.add('green');
+        document.getElementById('crusher19-box').classList.add('red');
+        document.getElementById('crusher20-box').classList.add('red');
+        document.getElementById('crusher21-box').classList.add('green');
+        document.getElementById('crusher22-box').classList.add('red');
+        document.getElementById('crusher23-box').classList.add('green');
+        document.getElementById('crusher24-box').classList.add('red');
+
+        // Random status indicators for auxiliary equipment
+        let colors = ['green', 'red'];
+        for (let i = 1; i <= 12; i++) {
+            let randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById(`box${i}`).classList.add(randomColor);
+        }
+    }
+    window.onload = updateBoxColors;
+</script>
+
+<!-- Support for older browsers -->
+<script>
+(function(){
+    function b(a,b,e,f){var c=(a.className||"").split(/\s+/g);""===c[0]&&c.shift();var d=c.indexOf(b);0>d&&e&&c.push(b);0<=d&&f&&c.splice(d,1);a.className=c.join(" ");return 0<=d}if(!("classList"in document.createElement("div"))){var e={add:function(a){b(this.element,a,!0,!1)},contains:function(a){return b(this.element,a,!1,!1)},remove:function(a){b(this.element,a,!1,!0)},toggle:function(a){b(this.element,a,!0,!0)}};Object.defineProperty(HTMLElement.prototype,"classList",{get:function(){if(this._classList)return this._classList;
+    var a=Object.create(e,{element:{value:this,writable:!1,enumerable:!0}});Object.defineProperty(this,"_classList",{value:a,writable:!1,enumerable:!1});return a},enumerable:!0})}})();
+</script>
+{% endblock %}
