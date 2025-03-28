@@ -311,7 +311,7 @@
             </select>
         </div>            
         
-        <div class="form-group" id="part-group">
+        <!-- <div class="form-group" id="part-group">
             <label for="part_number">Part Number</label>
             <select id="part_number" name="part_number">
                 <option value="">Select Part Number</option>
@@ -321,7 +321,7 @@
                     </option>
                 {% endfor %}
             </select>
-        </div>
+        </div> -->
         
         <!-- Shift Selection --> 
         <div class="form-group" id="shift-group"> 
@@ -336,13 +336,13 @@
             </select> 
         </div>
         
-        <div class="form-group">
+        <!-- <div class="form-group">
             <label for="status">Status</label>
             <select id="status" name="status">
                 <option value="OK" {% if request.GET.status == "OK" %}selected{% endif %}>OK</option>
                 <option value="NOK" {% if request.GET.status == "NOK" %}selected{% endif %}>NOK</option>
             </select>
-        </div>
+        </div> -->
         
         <div class="button-group">
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
@@ -361,20 +361,20 @@
             {% endif %}
 
             <!-- OK and NOK Totals Below Pie Chart -->
-            <div class="totals-info">
+            <!-- <div class="totals-info">
                 <p>Total OK: {{ ok_count }}</p>
                 <p>Total NOK: {{ nok_count }}</p>
-            </div>
+            </div> -->
 
             <!-- Legend for OK and NOK -->
-            <div class="legend">
+            <!-- <div class="legend">
                 <div class="legend-item">
                     <span class="legend-color ok-color"></span> OK
                 </div>
                 <div class="legend-item">
                     <span class="legend-color nok-color"></span> NOK
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
     
@@ -383,10 +383,8 @@
         <table class="data-table">    
             <thead>
                 <tr>
-                    <th>Part Number</th>
-                    <th>Highest Value</th>
-                    <th>Station No</th>
-                    <th>Status</th>
+                    <th>Gas Generation</th>
+                    <th>Energy Consumption </th>
                     <th>Shift</th>
                     <th>Date</th>
                 </tr>
@@ -394,10 +392,8 @@
             <tbody>
                 {% for report in report_data %}
                     <tr>
-                        <td>{{ report.part_number_id }}</td>
                         <td>{{ report.highest_value }}</td>
                         <td>{{ report.filter_no }}</td>
-                        <td>{{ report.status }}</td>
                         <td>{{ report.shift }}</td>
                         <td>{{ report.date }}</td>
                     </tr>

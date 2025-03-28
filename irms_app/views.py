@@ -1,22 +1,17 @@
-import io
-import json
-import base64
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout 
 from django.urls import reverse
-from django.views import View
-from django.db import connection
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
 import matplotlib
 matplotlib.use('agg')
-from matplotlib import pyplot as plt
-from django.http import JsonResponse
-from django.db.models import Max
-from .forms import LoginForm
-from .models import User
+from .forms import CustomUserCreationForm
+from .models import *
+from .permissions import role_required
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from .serializers import LocaltoPIDDataSerializer
+import requests
 
 def user_login(request):
     if request.method == 'POST':
@@ -25,7 +20,7 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('leakapp_list')
+            return redirect('home')
         else:
             messages.error(request, 'Invalid username or password')
     return render(request, 'login.html')
@@ -41,5 +36,64 @@ def home(request):
 def report(request):
     return render(request, "report.html")
 
-def user_register(request):
-    return render(request, "user.html")
+@login_required
+@role_required(['Admin', 'Manager'])
+def create_user(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            try:
+                user = form.save()
+                messages.success(request, f'User {user.username} created successfully!')
+                return redirect('create_user')  # Redirect back to the same page
+            except Exception as e:
+                messages.error(request, f'Error creating user: {str(e)}')
+    else:
+        form = CustomUserCreationForm()
+    
+    # Fetch all users to display in the list
+    users = CustomUser.objects.all()
+    
+    return render(request, 'user.html', {
+        'form': form, 
+        'users': users
+    })
+
+
+class LocalDataEntryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling local data entries
+    """
+    queryset = LocalData.objects.all()
+    serializer_class = LocaltoPIDDataSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Custom create method to process and redistribute data
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Save the local data entry
+        self.perform_create(serializer)
+        
+        # Process and redistribute data to PID system
+        try:
+            self.redistribute_data(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # If redistribution fails, still save the original entry
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def redistribute_data(self, data):
+        """
+        Redistribute data to PID system or other processing endpoints
+        """
+        # Example redistribution to a hypothetical PID data endpoint
+        pid_endpoint = 'https://your-pid-system-endpoint.com/api/process-data/'
+        try:
+            response = requests.post(pid_endpoint, json=data)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            # Log the error or handle as needed
+            print(f"Failed to redistribute data: {e}")

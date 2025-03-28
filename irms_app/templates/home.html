@@ -12,12 +12,6 @@
             <div class="pc pc1 w0 h0">
                 <!-- Background image -->
                 <img class="bi x0 y0 w1 h1" alt="SCADA System Layout" src="static/images/scada.png"/>
-                
-                <!-- Status indicator boxes for crushers -->
-                <!-- Group 1 -->
-                <div class="box" id="crusher1-box" style="top: 44px; left: 29px;"></div>
-                <div class="box" id="crusher2-box" style="top: 127px; left: 29px;"></div>
-                
                 <!-- Group 2 -->
                 <div class="box1" id="crusher3-box" style="top: 141px; left: 172px;"></div>
                 <div class="box1" id="crusher4-box" style="top: 141px; left: 200.5px;"></div>
@@ -58,9 +52,6 @@
                 
                 <!-- Labels and measurements -->
                 <div class="c x0 y1 w2 h0">
-                    <!-- Crusher labels -->
-                    <div class="t m0 x1 h2 y3 ff1 fs0 fc0 sc0 ls4 wsb">Crusher 1</div>
-                    <div class="t m0 x1 h2 y2 ff1 fs0 fc0 sc0 ls4 wsb">Crusher 2</div>
                     
                     <!-- Measurement readings -->
                     <div class="t m0 x29 he y3a ff1 fs4 fc1 sc0 ls4 wsb">20.02,</div>
@@ -96,8 +87,6 @@
 <script>
     function updateBoxColors() {
         // Set color indicators for crusher status (green = operating, red = stopped/issue)
-        document.getElementById('crusher1-box').classList.add('green');
-        document.getElementById('crusher2-box').classList.add('red');
         document.getElementById('crusher3-box').classList.add('green');
         document.getElementById('crusher4-box').classList.add('red');
         document.getElementById('crusher5-box').classList.add('green');

@@ -1,0 +1,76 @@
+2025-03-28 13:28:30,869 - INFO - Local Data Transfer Application Started
+2025-03-28 13:28:30,870 - INFO - Target API Endpoint: http://your-hosted-server.com/api/local-data/
+2025-03-28 13:28:31,027 - ERROR - Database Error: 1049 (42000): Unknown database 'your_local_database'
+2025-03-28 13:28:31,100 - ERROR - Traceback (most recent call last):
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 365, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+_mysql_connector.MySQLInterfaceError: Unknown database 'your_local_database'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dnyaneshwar P\EDMP-IRMS\edmp_irms\db_transfer.py", line 45, in transfer_local_data_to_pid_data
+    connection = mysql.connector.connect(**db_config)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 153, in __init__
+    self.connect(**kwargs)
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\abstracts.py", line 1529, in connect
+    self._open_connection()
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 370, in _open_connection
+    raise get_mysql_exception(
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'your_local_database'
+
+2025-03-28 13:28:31,100 - INFO - Waiting 300 seconds before next data transfer
+2025-03-28 13:29:10,702 - INFO - Local Data Transfer Application Started
+2025-03-28 13:29:10,702 - INFO - Target API Endpoint: http://localhost:8000/api/local-data/
+2025-03-28 13:29:10,784 - ERROR - Database Error: 1054 (42S22): Unknown column 'ip_address' in 'field list'
+2025-03-28 13:29:10,834 - ERROR - Traceback (most recent call last):
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 755, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Unknown column 'ip_address' in 'field list'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dnyaneshwar P\EDMP-IRMS\edmp_irms\db_transfer.py", line 49, in transfer_local_data_to_pid_data
+    cursor.execute("""
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\cursor_cext.py", line 351, in execute
+    self._connection.cmd_query(
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 763, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.ProgrammingError: 1054 (42S22): Unknown column 'ip_address' in 'field list'
+
+2025-03-28 13:29:10,835 - INFO - Waiting 300 seconds before next data transfer
+2025-03-28 13:29:38,561 - INFO - Local Data Transfer Application Started
+2025-03-28 13:29:38,561 - INFO - Target API Endpoint: http://localhost:8000/api/local-data/
+2025-03-28 13:29:38,618 - ERROR - Database Error: 1054 (42S22): Unknown column 'plant_id' in 'field list'
+2025-03-28 13:29:38,625 - ERROR - Traceback (most recent call last):
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 755, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Unknown column 'plant_id' in 'field list'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dnyaneshwar P\EDMP-IRMS\edmp_irms\db_transfer.py", line 49, in transfer_local_data_to_pid_data
+    cursor.execute("""
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\cursor_cext.py", line 351, in execute
+    self._connection.cmd_query(
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Win\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 763, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.ProgrammingError: 1054 (42S22): Unknown column 'plant_id' in 'field list'
+
+2025-03-28 13:29:38,625 - INFO - Waiting 300 seconds before next data transfer
+2025-03-28 13:29:53,366 - INFO - Local Data Transfer Application Started
+2025-03-28 13:29:53,367 - INFO - Target API Endpoint: http://localhost:8000/api/local-data/
+2025-03-28 13:29:53,441 - INFO - No data found in local_data table
+2025-03-28 13:29:53,442 - INFO - Waiting 300 seconds before next data transfer

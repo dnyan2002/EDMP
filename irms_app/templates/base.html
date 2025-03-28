@@ -146,14 +146,14 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item" id="plat">
-                    <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+                    <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">P&ID</a>
                 </li>
 
                 <li class="nav-item" id="plat">
                     <a href="{% url 'report' %}" class="nav-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">Report</a>
                 </li>
                 <li class="nav-item" id="plat">
-                    <a href="{% url 'user' %}" class="nav-link {% if request.resolver_match.url_name == 'user' %}active{% endif %}">Users</a>
+                    <a href="{% url 'create_user' %}" class="nav-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">Users</a>
                 </li>
             </ul>
           <form class="form-inline my-2 my-lg-0">

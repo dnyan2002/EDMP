@@ -4,204 +4,300 @@
 
 {% block styles %}
 <style>
-body {
-    font-family: Arial, sans-serif;
-    padding-bottom: 60px;
-    margin: 0;
-    background-color: #f8f9fa;
-}
-
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Form Container */
-.user-form {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px auto;
-    padding: 30px;
-    border: 1px solid #ccc;
-    background-color: #f5f5f5;
-    border-radius: 10px;
-    max-width: 800px;
-}
-
-/* Form Header */
-.form-header {
-    width: 100%;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.form-header h2 {
-    color: #062A63;
-    margin: 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #062A63;
-    display: inline-block;
-}
-
-/* Form Fields */
-.form-group {
-    flex: 1;
-    margin: 0 10px 15px 10px;
-    min-width: 250px;
-}
-
-.form-group label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-    color: #333;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #062A63;
-    box-shadow: 0 0 5px rgba(6, 42, 99, 0.3);
-}
-
-/* Button Group */
-.button-group {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    width: 100%;
-}
-
-/* Button Styles */
-.submit-button,
-.reset-button {
-    background-color: #062A63;
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    min-width: 120px;
-}
-
-.reset-button {
-    background-color: #6c757d;
-}
-
-.submit-button:hover {
-    background-color: #045191;
-}
-
-.reset-button:hover {
-    background-color: #5a6268;
-}
-
-/* Password Validation */
-.password-requirements {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
-
-.password-strength {
-    height: 5px;
-    margin-top: 5px;
-    border-radius: 2px;
-    background-color: #ddd;
-}
-
-.password-strength-meter {
-    height: 100%;
-    border-radius: 2px;
-    width: 0%;
-    transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-/* Required Field Indicator */
-.required::after {
-    content: "*";
-    color: red;
-    margin-left: 3px;
-}
-
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-    .form-group {
-        flex: 100%;
-        margin: 10px 0;
+    body {
+        font-family: Arial, sans-serif;
+        padding-bottom: 60px;
+        margin: 0;
+        background-color: #f8f9fa;
     }
-}
+
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Form Container */
+    .user-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin: 20px auto;
+        padding: 30px;
+        border: 1px solid #ccc;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        max-width: 800px;
+    }
+
+    /* Form Header */
+    .form-header {
+        width: 100%;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .form-header h2 {
+        color: #062A63;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #062A63;
+        display: inline-block;
+    }
+
+    /* Form Fields */
+    .form-group {
+        flex: 1;
+        margin: 0 10px 15px 10px;
+        min-width: 250px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 90%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #062A63;
+        box-shadow: 0 0 5px rgba(6, 42, 99, 0.3);
+    }
+
+    /* Button Group */
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    /* Button Styles */
+    .submit-button,
+    .reset-button {
+        background-color: #062A63;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+        min-width: 120px;
+    }
+
+    .reset-button {
+        background-color: #6c757d;
+    }
+
+    .submit-button:hover {
+        background-color: #045191;
+    }
+
+    .reset-button:hover {
+        background-color: #5a6268;
+    }
+
+    /* Password Validation */
+    .password-requirements {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .password-strength {
+        height: 5px;
+        margin-top: 5px;
+        border-radius: 2px;
+        background-color: #ddd;
+    }
+
+    .password-strength-meter {
+        height: 100%;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Required Field Indicator */
+    .required::after {
+        content: "*";
+        color: red;
+        margin-left: 3px;
+    }
+
+    /* Error Message */
+    .error-message {
+        color: red;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+
+    /* Users Table Styles */
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    
+    .users-table th, 
+    .users-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+    }
+    
+    .users-table thead {
+        background-color: #062A63;
+        color: white;
+    }
+    
+    .users-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    
+    .users-table tr:hover {
+        background-color: #ddd;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+        .form-group {
+            flex: 100%;
+            margin: 10px 0;
+        }
+    }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="container">
-    <form class="user-form" id="userCreationForm">
+<div class="d-flex justify-content-end align-items-center mb-3">
+    <button type="button" id="toggle_button" class="btn" style="background-color: #062A63; color: #fff; transition: 0.3s ease; cursor: pointer; border: none; padding: 10px 20px;">List Users</button>
+</div>
+
+<div class="container" id="master_data_form_container">
+    <form class="user-form" method="post" id="userCreationForm">
+        {% csrf_token %}
         <div class="form-header">
             <h2>Create New User</h2>
         </div>
 
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <!-- Full Name Field -->
         <div class="form-group">
-            <label for="fullName" class="required">Full Name</label>
-            <input type="text" id="fullName" name="fullName" required placeholder="Enter full name">
+            <label for="{{ form.full_name.id_for_label }}" class="required">Full Name</label>
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+                <div class="error-message">
+                    {% for error in form.full_name.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Username Field -->
         <div class="form-group">
-            <label for="username" class="required">Username</label>
-            <input type="text" id="username" name="username" required placeholder="Enter username">
+            <label for="{{ form.username.id_for_label }}" class="required">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="error-message">
+                    {% for error in form.username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Password Field -->
         <div class="form-group">
-            <label for="password" class="required">Password</label>
-            <input type="password" id="password" name="password" required placeholder="Enter password">
+            <label for="{{ form.password1.id_for_label }}" class="required">Password</label>
+            {{ form.password1 }}
             <div class="password-strength">
                 <div class="password-strength-meter" id="passwordStrength"></div>
             </div>
             <div class="password-requirements">
                 Password must be at least 8 characters and include a number, a capital letter, and a special character.
             </div>
+            {% if form.password1.errors %}
+                <div class="error-message">
+                    {% for error in form.password1.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Confirm Password Field -->
         <div class="form-group">
-            <label for="confirmPassword" class="required">Confirm Password</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
+            <label for="{{ form.password2.id_for_label }}" class="required">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="error-message">
+                    {% for error in form.password2.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Company Name Field -->
         <div class="form-group">
-            <label for="companyName" class="required">Company Name</label>
-            <input type="text" id="companyName" name="companyName" required placeholder="Enter company name">
+            <label for="{{ form.company_name.id_for_label }}" class="required">Company Name</label>
+            {{ form.company_name }}
+            {% if form.company_name.errors %}
+                <div class="error-message">
+                    {% for error in form.company_name.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Role Selection Field -->
         <div class="form-group">
-            <label for="role" class="required">Role</label>
-            <select id="role" name="role" required>
-                <option value="">Select a Role</option>
-                <option value="admin">Administrator</option>
-                <option value="manager">Manager</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="operator">Operator</option>
-                <option value="viewer">Viewer</option>
-            </select>
+            <label for="{{ form.role.id_for_label }}" class="required">Role</label>
+            {{ form.role }}
+            {% if form.role.errors %}
+                <div class="error-message">
+                    {% for error in form.role.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Status Field -->
+        <div class="form-group">
+            <label for="{{ form.status.id_for_label }}" class="required">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+                <div class="error-message">
+                    {% for error in form.status.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Button Group -->
@@ -211,10 +307,44 @@ body {
     </form>
 </div>
 
+<!-- Users List View -->
+<div id="list_view" style="display: none; height: 70vh; overflow-y: auto;">
+    <table class="users-table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.company_name }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.status }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No users found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordInput = document.querySelector('input[name="password1"]');
+        const confirmPasswordInput = document.querySelector('input[name="password2"]');
         const passwordStrength = document.getElementById('passwordStrength');
         const form = document.getElementById('userCreationForm');
 
@@ -244,29 +374,23 @@ body {
             passwordStrength.style.backgroundColor = color;
         });
 
-        // Form submission validation
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
+        // Toggle between form and list view
+        document.getElementById("toggle_button").addEventListener("click", function() {
+            var formContainer = document.getElementById("master_data_form_container");
+            var listView = document.getElementById("list_view");
+            var title = document.getElementById("page_title");
             
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            
-            // Check if passwords match
-            if (password !== confirmPassword) {
-                alert("Passwords do not match!");
-                return;
+            if (formContainer.style.display === "none") {
+                formContainer.style.display = "block";
+                listView.style.display = "none";
+                this.textContent = "List Users";
+                title.textContent = "Add Users";
+            } else {
+                formContainer.style.display = "none";
+                listView.style.display = "block";
+                this.textContent = "Add Users";
+                title.textContent = "List Users";
             }
-
-            // Validate password strength
-            if (password.length < 8 || !password.match(/[A-Z]/) || 
-                !password.match(/[0-9]/) || !password.match(/[^A-Za-z0-9]/)) {
-                alert("Password doesn't meet the requirements!");
-                return;
-            }
-
-            // If validation passes, you would normally submit the form
-            alert("User creation form submitted successfully!");
-            // form.submit(); // Uncomment this in actual implementation
         });
     });
 </script>

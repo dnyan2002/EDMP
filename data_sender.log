@@ -1,0 +1,187 @@
+2025-03-28 13:24:26,972 - INFO - Local Data Sender Application Started
+2025-03-28 13:24:26,973 - INFO - Target API Endpoint: http://localhost:8000/api/local-data/
+2025-03-28 13:24:27,524 - INFO - Internet connectivity verified
+2025-03-28 13:24:27,593 - INFO - Successfully retrieved local IP: 192.168.1.22
+2025-03-28 13:24:27,593 - INFO - Preparing to send data: {
+  "device_id": "f20202e2-2b60-5596-b5b0-a363e48001c8",
+  "ip_address": "192.168.1.22",
+  "plant_id": "PLANT_001",
+  "value1": 8.14,
+  "value2": 35.36,
+  "value3": 53.16,
+  "value4": 98.96,
+  "value5": 57.98,
+  "value6": 81.09
+}
+2025-03-28 13:24:29,634 - INFO - API Response Status Code: 400
+2025-03-28 13:24:29,635 - INFO - API Response Headers: {'Date': 'Fri, 28 Mar 2025 07:54:29 GMT', 'Server': 'WSGIServer/0.2 CPython/3.12.0', 'Content-Type': 'application/json', 'Vary': 'Accept', 'Allow': 'GET, POST, HEAD, OPTIONS', 'X-Frame-Options': 'DENY', 'Content-Length': '2441', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin', 'Cross-Origin-Opener-Policy': 'same-origin'}
+2025-03-28 13:24:29,642 - WARNING - Failed to send data. Status code: 400
+2025-03-28 13:24:29,642 - WARNING - Response Content: {"crusher1_napier_tph":["This field is required."],"crusher2_napier_tph":["This field is required."],"feed_pump1_value":["This field is required."],"feed_pump2_value":["This field is required."],"water_pump1_value":["This field is required."],"water_pump2_value":["This field is required."],"fresh_water_pump1":["This field is required."],"fresh_water_pump2":["This field is required."],"mixer1_value":["This field is required."],"mixer2_value":["This field is required."],"level_switch1":["This field is required."],"level_switch2":["This field is required."],"water_flow_meter1":["This field is required."],"water_flow_meter2":["This field is required."],"fire_fighting_pump1":["This field is required."],"fire_fighting_pump2":["This field is required."],"pt_digester_feed_pump1_value":["This field is required."],"pt_digester_feed_pump2_value":["This field is required."],"pt_digester_feed_pump3_value":["This field is required."],"pt_circulation_pump_value":["This field is required."],"pt_sealing_pump1_value":["This field is required."],"pt_sealing_pump2_value":["This field is required."],"pt_level_switch1":["This field is required."],"pt_level_switch2":["This field is required."],"pt_slurry_flowmeter1":["This field is required."],"pt_slurry_flowmeter2":["This field is required."],"dt1_circulation_pump1":["This field is required."],"dt1_circulation_pump2":["This field is required."],"dt1_circulation_pump3":["This field is required."],"dt1_pt100_1":["This field is required."],"dt1_pt100_2":["This field is required."],"dt1_pr_tx_1":["This field is required."],"dt1_pr_tx_2":["This field is required."],"heat_pump1_value":["This field is required."],"heat_pump2_value":["This field is required."],"heat_pump3_value":["This field is required."],"hot_water_pump1":["This field is required."],"hot_water_pump2":["This field is required."],"sealing_pump1":["This field is required."],"sealing_pump2":["This field is required."],"baloon_plc1":["This field is required."],"baloon_plc2":["This field is required."],"baloon_plc3":["This field is required."],"sls_feed_pump1":["This field is required."],"sls_feed_pump2":["This field is required."],"sls_circulation_pump":["This field is required."],"sls_level_switch1":["This field is required."],"sls_level_switch2":["This field is required."],"sls_slurry_flowmeter":["This field is required."],"gas_flowmeter1":["This field is required."],"gas_flowmeter2":["This field is required."]}
+2025-03-28 13:24:29,643 - WARNING - Error Details: {
+  "crusher1_napier_tph": [
+    "This field is required."
+  ],
+  "crusher2_napier_tph": [
+    "This field is required."
+  ],
+  "feed_pump1_value": [
+    "This field is required."
+  ],
+  "feed_pump2_value": [
+    "This field is required."
+  ],
+  "water_pump1_value": [
+    "This field is required."
+  ],
+  "water_pump2_value": [
+    "This field is required."
+  ],
+  "fresh_water_pump1": [
+    "This field is required."
+  ],
+  "fresh_water_pump2": [
+    "This field is required."
+  ],
+  "mixer1_value": [
+    "This field is required."
+  ],
+  "mixer2_value": [
+    "This field is required."
+  ],
+  "level_switch1": [
+    "This field is required."
+  ],
+  "level_switch2": [
+    "This field is required."
+  ],
+  "water_flow_meter1": [
+    "This field is required."
+  ],
+  "water_flow_meter2": [
+    "This field is required."
+  ],
+  "fire_fighting_pump1": [
+    "This field is required."
+  ],
+  "fire_fighting_pump2": [
+    "This field is required."
+  ],
+  "pt_digester_feed_pump1_value": [
+    "This field is required."
+  ],
+  "pt_digester_feed_pump2_value": [
+    "This field is required."
+  ],
+  "pt_digester_feed_pump3_value": [
+    "This field is required."
+  ],
+  "pt_circulation_pump_value": [
+    "This field is required."
+  ],
+  "pt_sealing_pump1_value": [
+    "This field is required."
+  ],
+  "pt_sealing_pump2_value": [
+    "This field is required."
+  ],
+  "pt_level_switch1": [
+    "This field is required."
+  ],
+  "pt_level_switch2": [
+    "This field is required."
+  ],
+  "pt_slurry_flowmeter1": [
+    "This field is required."
+  ],
+  "pt_slurry_flowmeter2": [
+    "This field is required."
+  ],
+  "dt1_circulation_pump1": [
+    "This field is required."
+  ],
+  "dt1_circulation_pump2": [
+    "This field is required."
+  ],
+  "dt1_circulation_pump3": [
+    "This field is required."
+  ],
+  "dt1_pt100_1": [
+    "This field is required."
+  ],
+  "dt1_pt100_2": [
+    "This field is required."
+  ],
+  "dt1_pr_tx_1": [
+    "This field is required."
+  ],
+  "dt1_pr_tx_2": [
+    "This field is required."
+  ],
+  "heat_pump1_value": [
+    "This field is required."
+  ],
+  "heat_pump2_value": [
+    "This field is required."
+  ],
+  "heat_pump3_value": [
+    "This field is required."
+  ],
+  "hot_water_pump1": [
+    "This field is required."
+  ],
+  "hot_water_pump2": [
+    "This field is required."
+  ],
+  "sealing_pump1": [
+    "This field is required."
+  ],
+  "sealing_pump2": [
+    "This field is required."
+  ],
+  "baloon_plc1": [
+    "This field is required."
+  ],
+  "baloon_plc2": [
+    "This field is required."
+  ],
+  "baloon_plc3": [
+    "This field is required."
+  ],
+  "sls_feed_pump1": [
+    "This field is required."
+  ],
+  "sls_feed_pump2": [
+    "This field is required."
+  ],
+  "sls_circulation_pump": [
+    "This field is required."
+  ],
+  "sls_level_switch1": [
+    "This field is required."
+  ],
+  "sls_level_switch2": [
+    "This field is required."
+  ],
+  "sls_slurry_flowmeter": [
+    "This field is required."
+  ],
+  "gas_flowmeter1": [
+    "This field is required."
+  ],
+  "gas_flowmeter2": [
+    "This field is required."
+  ]
+}
+2025-03-28 13:24:29,645 - INFO - Waiting 55.53 seconds before next data send
+2025-03-28 13:25:25,179 - INFO - Successfully retrieved local IP: 192.168.1.22
+2025-03-28 13:25:28,765 - INFO - Preparing to send data: {
+  "device_id": "f20202e2-2b60-5596-b5b0-a363e48001c8",
+  "ip_address": "192.168.1.22",
+  "plant_id": "PLANT_001",
+  "value1": 99.65,
+  "value2": 9.2,
+  "value3": 65.92,
+  "value4": 76.83,
+  "value5": 80.63,
+  "value6": 34.38
+}
