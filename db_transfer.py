@@ -70,8 +70,8 @@ def transfer_local_data_to_pid_data(api_url):
             # Prepare data for API
             api_data = {
                 'device_id': generate_device_id(),
-                'ip_address': local_row['ip_address'],
-                'plant_id': local_row['plant_id']
+                'ip_address': local_row['ip_address_id'],
+                'plant_id': local_row['plant_id_id']
             }
 
             # Values from local data

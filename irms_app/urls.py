@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.user_login, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('home', views.home, name="home"),
+    path('pid_data/', views.pid_data, name="pid_data"),
     path('report', views.report, name="report"),
     path('create/', views.create_user, name='create_user'),
     path('api/', include(router.urls), name="route_urls"),

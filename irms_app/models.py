@@ -36,7 +36,7 @@ class CustomUser(AbstractUser):
         db_table = 'user'
 
 class Section(models.Model):
-    section_name = models.CharField(max_length=255)
+    section_name = models.CharField(max_length=50)
 
     class Meta:
         verbose_name = "Section"
@@ -44,7 +44,7 @@ class Section(models.Model):
         db_table = 'section'
 
 class Equipment(models.Model):
-    equipment_name = models.CharField(max_length=255)
+    equipment_name = models.CharField(max_length=50)
 
     class Meta:
         verbose_name = "Equipment"
@@ -52,7 +52,7 @@ class Equipment(models.Model):
         db_table = 'equipment'
 
 class Parameter(models.Model):
-    parameter_name = models.CharField(max_length=255)
+    parameter_name = models.CharField(max_length=50)
 
     class Meta:
         verbose_name = "Parameter"
@@ -62,7 +62,7 @@ class Parameter(models.Model):
 
 class Plant(models.Model):
     plant_id = models.CharField(max_length=50, primary_key=True)
-    plant_name = models.CharField(max_length=255)
+    plant_name = models.CharField(max_length=45)
 
     class Meta:
         verbose_name = "Plant"
@@ -70,7 +70,7 @@ class Plant(models.Model):
         db_table = 'plant'
 
 class Connection(models.Model):
-    machine_name = models.CharField(max_length=255)
+    machine_name = models.CharField(max_length=45)
     ip_address = models.GenericIPAddressField()
     port_no = models.IntegerField()
     status = models.CharField(max_length=50, null=True, blank=True)
@@ -87,8 +87,8 @@ class Connection(models.Model):
 
 class FieldLink(models.Model):
     ip_address = models.ForeignKey(Connection, on_delete=models.CASCADE)
-    field_name = models.CharField(max_length=255)
-    field_description = models.TextField()
+    field_name = models.CharField(max_length=35)
+    field_description = models.CharField(max_length=45)
     plant_id = models.ForeignKey('Plant', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -102,14 +102,12 @@ class FieldLink(models.Model):
 class LocalData(models.Model):
     ip_address = models.ForeignKey(Connection, on_delete=models.CASCADE)
     plant_id = models.ForeignKey(Plant, on_delete=models.CASCADE)
-    value1 = models.FloatField()
-    value2 = models.FloatField()
-    value3 = models.FloatField()
-    value4 = models.FloatField()
-    value5 = models.FloatField()
-    value6 = models.FloatField()
-    value7 = models.FloatField()
-    value8 = models.FloatField()
+    value1 = models.FloatField(null=True, blank=True)
+    value2 = models.FloatField(null=True, blank=True)
+    value3 = models.FloatField(null=True, blank=True)
+    value4 = models.FloatField(null=True, blank=True)
+    value5 = models.FloatField(null=True, blank=True)
+    value6 = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -118,60 +116,62 @@ class LocalData(models.Model):
         db_table = 'local_data'
 
 class PIDData(models.Model):
-    crusher1_napier_tph = models.FloatField()
-    crusher2_napier_tph = models.FloatField()
-    feed_pump1_value = models.FloatField()
-    feed_pump2_value = models.FloatField()
-    water_pump1_value = models.FloatField()
-    water_pump2_value = models.FloatField()
-    fresh_water_pump1 = models.FloatField()
-    fresh_water_pump2 = models.FloatField()
-    mixer1_value = models.FloatField()
-    mixer2_value = models.FloatField()
-    level_switch1 = models.FloatField()
-    level_switch2 = models.FloatField()
-    water_flow_meter1 = models.FloatField()
-    water_flow_meter2 = models.FloatField()
-    fire_fighting_pump1 = models.FloatField()
-    fire_fighting_pump2 = models.FloatField()
-    pt_digester_feed_pump1_value = models.FloatField()
-    pt_digester_feed_pump2_value = models.FloatField()
-    pt_digester_feed_pump3_value = models.FloatField()
-    pt_circulation_pump_value = models.FloatField()
-    pt_sealing_pump1_value = models.FloatField()
-    pt_sealing_pump2_value = models.FloatField()
-    pt_level_switch1 = models.FloatField()
-    pt_level_switch2 = models.FloatField()
-    pt_slurry_flowmeter1 = models.FloatField()
-    pt_slurry_flowmeter2 = models.FloatField()
-    dt1_circulation_pump1 = models.FloatField()
-    dt1_circulation_pump2 = models.FloatField()
-    dt1_circulation_pump3 = models.FloatField()
-    dt1_pt100_1 = models.FloatField()
-    dt1_pt100_2 = models.FloatField()
-    dt1_pr_tx_1 = models.FloatField()
-    dt1_pr_tx_2 = models.FloatField()
-    heat_pump1_value = models.FloatField()
-    heat_pump2_value = models.FloatField()
-    heat_pump3_value = models.FloatField()
-    hot_water_pump1 = models.FloatField()
-    hot_water_pump2 = models.FloatField()
-    sealing_pump1 = models.FloatField()
-    sealing_pump2 = models.FloatField()
-    baloon_plc1 = models.FloatField()
-    baloon_plc2 = models.FloatField()
-    baloon_plc3 = models.FloatField()
-    sls_feed_pump1 = models.FloatField()
-    sls_feed_pump2 = models.FloatField()
-    sls_circulation_pump = models.FloatField()
-    sls_level_switch1 = models.FloatField()
-    sls_level_switch2 = models.FloatField()
-    sls_slurry_flowmeter = models.FloatField()
-    gas_flowmeter1 = models.FloatField()
-    gas_flowmeter2 = models.FloatField()
+    crusher1_napier_tph = models.FloatField(null=True, blank=True)
+    crusher2_napier_tph = models.FloatField(null=True, blank=True)
+    feed_pump1_value = models.FloatField(null=True, blank=True)
+    feed_pump2_value = models.FloatField(null=True, blank=True)
+    water_pump1_value = models.FloatField(null=True, blank=True)
+    water_pump2_value = models.FloatField(null=True, blank=True)
+    fresh_water_pump1 = models.FloatField(null=True, blank=True)
+    fresh_water_pump2 = models.FloatField(null=True, blank=True)
+    mixer1_value = models.FloatField(null=True, blank=True)
+    mixer2_value = models.FloatField(null=True, blank=True)
+    level_switch1 = models.FloatField(null=True, blank=True)
+    level_switch2 = models.FloatField(null=True, blank=True)
+    water_flow_meter1 = models.FloatField(null=True, blank=True)
+    water_flow_meter2 = models.FloatField(null=True, blank=True)
+    fire_fighting_pump1 = models.FloatField(null=True, blank=True)
+    fire_fighting_pump2 = models.FloatField(null=True, blank=True)
+    pt_digester_feed_pump1_value = models.FloatField(null=True, blank=True)
+    pt_digester_feed_pump2_value = models.FloatField(null=True, blank=True)
+    pt_digester_feed_pump3_value = models.FloatField(null=True, blank=True)
+    pt_circulation_pump_value = models.FloatField(null=True, blank=True)
+    pt_sealing_pump1_value = models.FloatField(null=True, blank=True)
+    pt_sealing_pump2_value = models.FloatField(null=True, blank=True)
+    pt_level_switch1 = models.FloatField(null=True, blank=True)
+    pt_level_switch2 = models.FloatField(null=True, blank=True)
+    pt_slurry_flowmeter1 = models.FloatField(null=True, blank=True)
+    pt_slurry_flowmeter2 = models.FloatField(null=True, blank=True)
+    dt1_circulation_pump1 = models.FloatField(null=True, blank=True)
+    dt1_circulation_pump2 = models.FloatField(null=True, blank=True)
+    dt1_circulation_pump3 = models.FloatField(null=True, blank=True)
+    dt1_pt100_1 = models.FloatField(null=True, blank=True)
+    dt1_pt100_2 = models.FloatField(null=True, blank=True)
+    dt1_pr_tx_1 = models.FloatField(null=True, blank=True)
+    dt1_pr_tx_2 = models.FloatField(null=True, blank=True)
+    heat_pump1_value = models.FloatField(null=True, blank=True)
+    heat_pump2_value = models.FloatField(null=True, blank=True)
+    heat_pump3_value = models.FloatField(null=True, blank=True)
+    hot_water_pump1 = models.FloatField(null=True, blank=True)
+    hot_water_pump2 = models.FloatField(null=True, blank=True)
+    sealing_pump1 = models.FloatField(null=True, blank=True)
+    sealing_pump2 = models.FloatField(null=True, blank=True)
+    baloon_plc1 = models.FloatField(null=True, blank=True)
+    baloon_plc2 = models.FloatField(null=True, blank=True)
+    baloon_plc3 = models.FloatField(null=True, blank=True)
+    sls_feed_pump1 = models.FloatField(null=True, blank=True)
+    sls_feed_pump2 = models.FloatField(null=True, blank=True)
+    sls_circulation_pump = models.FloatField(null=True, blank=True)
+    sls_level_switch1 = models.FloatField(null=True, blank=True)
+    sls_level_switch2 = models.FloatField(null=True, blank=True)
+    sls_slurry_flowmeter = models.FloatField(null=True, blank=True)
+    gas_flowmeter1 = models.FloatField(null=True, blank=True)
+    gas_flowmeter2 = models.FloatField(null=True, blank=True)
+    mass_flowmeter = models.FloatField(null=True, blank=True)
+    no_of_bags = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'pid_data'
-        verbose_name_plural = 'pid_data'
+        verbose_name = 'P&ID Data'
+        verbose_name_plural = 'P&ID Data'
         db_table = 'pid_data'

@@ -72,7 +72,9 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306',
-
+        'OPTIONS': {
+            "init_command": "SET foreign_key_checks = 0;",
+        },
     }
 }
 
@@ -137,8 +139,8 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
    }
 
-# AUTH_USER_MODEL = 'irms_app.CustomUser'
+AUTH_USER_MODEL = 'irms_app.CustomUser'
 
-# # Login Redirect
-# LOGIN_REDIRECT_URL = '/'
-# LOGOUT_REDIRECT_URL = '/'
+# Login Redirect
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

@@ -31,7 +31,19 @@ def logout_view(request):
 
 
 def home(request):
-    return render(request, 'home.html')
+    latest_data = PIDData.objects.last()
+    
+    context = {
+        "data":latest_data
+    }
+    return render(request, 'home.html', context)
+
+def pid_data(request):
+    latest_data = PIDData.objects.last()
+    context = {
+        "data":latest_data
+    }
+    return render(request, 'pid_data.html', context)
 
 def report(request):
     return render(request, "report.html")
@@ -85,15 +97,15 @@ class LocalDataEntryViewSet(viewsets.ModelViewSet):
             # If redistribution fails, still save the original entry
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def redistribute_data(self, data):
-        """
-        Redistribute data to PID system or other processing endpoints
-        """
-        # Example redistribution to a hypothetical PID data endpoint
-        pid_endpoint = 'https://your-pid-system-endpoint.com/api/process-data/'
-        try:
-            response = requests.post(pid_endpoint, json=data)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            # Log the error or handle as needed
-            print(f"Failed to redistribute data: {e}")
+    # def redistribute_data(self, data):
+    #     """
+    #     Redistribute data to PID system or other processing endpoints
+    #     """
+    #     # Example redistribution to a hypothetical PID data endpoint
+    #     pid_endpoint = 'https://your-pid-system-endpoint.com/api/process-data/'
+    #     try:
+    #         response = requests.post(pid_endpoint, json=data)
+    #         response.raise_for_status()
+    #     except requests.RequestException as e:
+    #         # Log the error or handle as needed
+    #         print(f"Failed to redistribute data: {e}")

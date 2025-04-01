@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .models import CustomUser, Role
+from .models import CustomUser, Role, PIDData
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Username", max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -51,3 +51,8 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+    
+class PIDDataForm(forms.ModelForm):
+    class Meta:
+        model = PIDData
+        fields = '__all__'
