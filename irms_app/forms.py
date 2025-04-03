@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .models import CustomUser, Role, PIDData
+from .models import CustomUser, Role, PIDData, Plant
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Username", max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -23,6 +23,11 @@ class CustomUserCreationForm(UserCreationForm):
         required=True, 
         empty_label="Select a Role"
     )
+    plant = forms.ModelChoiceField(
+        queryset=Plant.objects.all(), 
+        required=True, 
+        empty_label="Select a Plant"
+    )
     status = forms.ChoiceField(
         choices=[('Active', 'Active'), ('Inactive', 'Inactive')],
         initial='Active',
@@ -35,7 +40,8 @@ class CustomUserCreationForm(UserCreationForm):
             'username', 
             'full_name', 
             'company_name', 
-            'role', 
+            'role',
+            'plant', 
             'password1', 
             'password2', 
             'status'
@@ -46,6 +52,7 @@ class CustomUserCreationForm(UserCreationForm):
         user.full_name = self.cleaned_data['full_name']
         user.company_name = self.cleaned_data['company_name']
         user.role = self.cleaned_data['role']
+        user.plant = self.cleaned_data['plant']
         user.status = self.cleaned_data['status']
         
         if commit:

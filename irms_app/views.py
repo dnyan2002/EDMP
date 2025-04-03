@@ -1,3 +1,4 @@
+import requests
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout 
@@ -10,8 +11,8 @@ from .models import *
 from .permissions import role_required
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .serializers import LocaltoPIDDataSerializer
-import requests
+from .serializers import PIDDataSerializer
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -71,41 +72,28 @@ def create_user(request):
         'users': users
     })
 
+import logging
 
-class LocalDataEntryViewSet(viewsets.ModelViewSet):
+logger = logging.getLogger(__name__)
+
+class PIDDataViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for handling local data entries
+    API ViewSet for directly handling PID data.
     """
-    queryset = LocalData.objects.all()
-    serializer_class = LocaltoPIDDataSerializer
+    queryset = PIDData.objects.all()
+    serializer_class = PIDDataSerializer
 
     def create(self, request, *args, **kwargs):
         """
-        Custom create method to process and redistribute data
+        Custom create method to receive and process PID data directly.
         """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # Save the local data entry
-        self.perform_create(serializer)
-        
-        # Process and redistribute data to PID system
-        try:
-            self.redistribute_data(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            # If redistribution fails, still save the original entry
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        logger.info(f"Received API Data: {request.data}")  # Log incoming data
 
-    # def redistribute_data(self, data):
-    #     """
-    #     Redistribute data to PID system or other processing endpoints
-    #     """
-    #     # Example redistribution to a hypothetical PID data endpoint
-    #     pid_endpoint = 'https://your-pid-system-endpoint.com/api/process-data/'
-    #     try:
-    #         response = requests.post(pid_endpoint, json=data)
-    #         response.raise_for_status()
-    #     except requests.RequestException as e:
-    #         # Log the error or handle as needed
-    #         print(f"Failed to redistribute data: {e}")
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info("PID Data successfully stored")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            logger.error(f"PID Data validation error: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

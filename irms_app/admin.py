@@ -27,9 +27,9 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('username',)
 
 admin.site.register(Role)
-admin.site.register(Section)
-admin.site.register(Equipment)
-admin.site.register(Parameter)
+# admin.site.register(Section)
+# admin.site.register(Equipment)
+# admin.site.register(Parameter)
 admin.site.register(Plant)
 admin.site.register(Connection)
 admin.site.register(FieldLink)

@@ -13,11 +13,23 @@ class Role(models.Model):
         verbose_name_plural = "Roles"
         db_table = 'role'
 
+class Plant(models.Model):
+    plant_id = models.CharField(max_length=50, primary_key=True)
+    plant_name = models.CharField(max_length=45)
+     
+    def __str__(self):
+        return self.plant_name
+    
+    class Meta:
+        verbose_name = "Plant"
+        verbose_name_plural = 'plants'
+        db_table = 'plant'
+
 class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=50, verbose_name="Full Name")
     company_name = models.CharField(max_length=70, verbose_name="Company Name")
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, verbose_name="Role", related_name="users")
-
+    plant = models.ForeignKey(Plant,on_delete=models.CASCADE, verbose_name=Plant)
     groups = models.ManyToManyField(Group, blank=True, related_name="customuser_groups")  # Fix conflict
     user_permissions = models.ManyToManyField(Permission, blank=True, related_name="customuser_permissions")
     status = models.CharField(max_length=10, choices=[('Active', 'Active'), ('Inactive', 'Inactive')])
@@ -60,14 +72,7 @@ class Parameter(models.Model):
         db_table = 'parameter'
 
 
-class Plant(models.Model):
-    plant_id = models.CharField(max_length=50, primary_key=True)
-    plant_name = models.CharField(max_length=45)
 
-    class Meta:
-        verbose_name = "Plant"
-        verbose_name_plural = 'plants'
-        db_table = 'plant'
 
 class Connection(models.Model):
     machine_name = models.CharField(max_length=45)
@@ -114,6 +119,14 @@ class LocalData(models.Model):
         verbose_name = "Local Data"
         verbose_name_plural = "Local Data"
         db_table = 'local_data'
+
+class PendingData(models.Model):
+    json_data = models.CharField(max_length=1000)
+
+    class Meta:
+        verbose_name = "Pending Data"
+        verbose_name_plural = "Pending Data"
+        db_table = 'pending_data'
 
 class PIDData(models.Model):
     crusher1_napier_tph = models.FloatField(null=True, blank=True)
@@ -172,6 +185,6 @@ class PIDData(models.Model):
     created_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'P&ID Data'
-        verbose_name_plural = 'P&ID Data'
+        verbose_name = 'Slurry and Purification Data'
+        verbose_name_plural = 'Slurry and Purification Data'
         db_table = 'pid_data'

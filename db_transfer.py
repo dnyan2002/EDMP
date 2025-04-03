@@ -1,151 +1,161 @@
 import mysql.connector
 import requests
 import logging
-import traceback
+import json
 import time
-import uuid
-import platform
+import traceback
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('data_transfer.log'),
-        logging.StreamHandler()
-    ]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def generate_device_id():
-    """
-    Generate a unique device identifier
-    """
-    try:
-        system_info = f"{platform.node()}_{platform.system()}_{platform.release()}"
-        return str(uuid.uuid5(uuid.NAMESPACE_DNS, system_info))
-    except Exception as e:
-        logger.error(f"Error generating device ID: {e}")
-        return str(uuid.uuid4())
+API_URL = 'http://localhost:8000/api/pid-data/'  # Correct API endpoint
 
-def transfer_local_data_to_pid_data(api_url):
-    """
-    Transfer data from local database to PID data via API
-    """
-    # Database connection parameters
-    db_config = {
-        'host': 'localhost',  # Replace with your local database host
-        'user': 'root',       # Replace with your database username
-        'password': '',        # Replace with your database password
-        'database': 'edmp_irms'  # Replace with your local database name
-    }
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': '',
+    'database': 'edmp_irms'
+}
 
+def check_internet():
+    """Check if the internet is available."""
     try:
-        # Establish database connection
-        connection = mysql.connector.connect(**db_config)
+        requests.get("https://www.google.com", timeout=5)
+        return True
+    except requests.RequestException:
+        return False
+
+def store_pending_data(data):
+    """Store unsent data in a local table for later retry."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        query = "INSERT INTO pending_data (json_data) VALUES (%s)"
+        cursor.execute(query, (json.dumps(data),))
+        connection.commit()
+        logger.info("Stored unsent data for retry.")
+    except mysql.connector.Error as e:
+        logger.error(f"Database error storing pending data: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+
+def send_data_to_server(data):
+    """Send data to the PID API server."""
+    try:
+        logger.info(f"Sending payload: {json.dumps(data, indent=4)}")  # Debugging log
+        response = requests.post(API_URL, json=data, headers={'Content-Type': 'application/json'}, timeout=10)
+        logger.info(f"API Response: {response.status_code}, Response Body: {response.text}")  # Log response
+
+        if response.status_code == 201:
+            logger.info("Data sent successfully to PID API.")
+            return True
+        else:
+            logger.warning(f"Failed to send data. Status: {response.status_code}")
+            return False
+    except requests.RequestException as e:
+        logger.error(f"Error sending data to server: {e}")
+        return False
+
+def retry_pending_data():
+    """Retry sending previously failed data."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
 
-        # Fetch local data
-        cursor.execute("""
-            SELECT id, ip_address_id, plant_id_id, value1, value2, value3, 
-                   value4, value5, value6 
-            FROM local_data
-        """)
-        local_data_rows = cursor.fetchall()
+        cursor.execute("SELECT id, json_data FROM pending_data")
+        pending_rows = cursor.fetchall()
 
-        if not local_data_rows:
-            logger.info("No data found in local_data table")
-            return
+        for row in pending_rows:
+            data = json.loads(row['json_data'])
+            if send_data_to_server(data):
+                cursor.execute("DELETE FROM pending_data WHERE id = %s", (row['id'],))
+                connection.commit()
+                logger.info(f"Successfully retried and deleted pending entry ID {row['id']}.")
 
-        # Fetch field links to map local data to pid_data fields
-        cursor.execute("""
-            SELECT fl.field_name, c.ip_address, c.id as connection_id
-            FROM field_link fl
-            JOIN connection c ON fl.ip_address_id = c.id
-        """)
-        field_links = cursor.fetchall()
+    except mysql.connector.Error as e:
+        logger.error(f"Database error retrying pending data: {e}")
+    finally:
+        cursor.close()
+        connection.close()
 
-        # Process each local data row
-        for local_row in local_data_rows:
-            # Prepare data for API
-            api_data = {
-                'device_id': generate_device_id(),
-                'ip_address': local_row['ip_address_id'],
-                'plant_id': local_row['plant_id_id']
-            }
+def get_field_mapping():
+    """Fetch field mappings between local_data fields and pid_data fields."""
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
 
-            # Values from local data
-            local_values = [
-                local_row['value1'], local_row['value2'], local_row['value3'],
-                local_row['value4'], local_row['value5'], local_row['value6']
-            ]
+        cursor.execute("SELECT ip_address_id, field_name, field_description FROM field_link")
+        field_mappings = cursor.fetchall()
 
-            # Map local values to PID data fields
-            for i, link in enumerate(field_links):
-                if i < len(local_values):
-                    api_data[link['field_name']] = local_values[i]
+        mapping = {}
+        for row in field_mappings:
+            ip_address = row['ip_address_id']
+            if ip_address not in mapping:
+                mapping[ip_address] = {}
+            mapping[ip_address][row['field_name']] = row['field_description']
+        
+        return mapping
 
-            # Send data to API
-            try:
-                response = requests.post(
-                    api_url, 
-                    json=api_data,
-                    headers={
-                        'Content-Type': 'application/json',
-                        'User-Agent': f'LocalDataTransfer/1.0 (Device:{api_data["device_id"]})'
-                    },
-                    timeout=10
-                )
-
-                # Log response and handle success/failure
-                if response.status_code == 201:
-                    logger.info(f"Successfully sent data for IP {local_row['ip_address']}")
-                    
-                    # Optionally, delete the processed row from local database
-                    # Uncomment if you want to remove processed entries
-                    # cursor.execute("DELETE FROM local_data WHERE id = %s", (local_row['id'],))
-                    # connection.commit()
-                else:
-                    logger.warning(f"Failed to send data. Status: {response.status_code}")
-                    logger.warning(f"Response: {response.text}")
-
-            except requests.RequestException as e:
-                logger.error(f"API Request Error: {e}")
-                logger.error(traceback.format_exc())
-
-    except mysql.connector.Error as db_error:
-        logger.error(f"Database Error: {db_error}")
-        logger.error(traceback.format_exc())
-
-    except Exception as e:
-        logger.error(f"Unexpected Error: {e}")
-        logger.error(traceback.format_exc())
+    except mysql.connector.Error as e:
+        logger.error(f"Database error fetching field mappings: {e}")
+        return {}
 
     finally:
-        # Ensure connections are closed
-        if 'cursor' in locals():
-            cursor.close()
-        if 'connection' in locals() and connection.is_connected():
-            connection.close()
+        cursor.close()
+        connection.close()
 
-def main():
-    # API endpoint for PID data
-    API_URL = 'http://localhost:8000/api/local-data/'
-    
-    logger.info("Local Data Transfer Application Started")
-    logger.info(f"Target API Endpoint: {API_URL}")
+def process_and_send_data():
+    """Main function to fetch local data and send it to the PID API."""
+    field_mapping = get_field_mapping()  # Fetch the latest field mappings
 
-    # Continuous data transfer with error resilience
     while True:
-        try:
-            transfer_local_data_to_pid_data(API_URL)
-        except Exception as e:
-            logger.critical(f"Critical error in main loop: {e}")
-        
-        # Wait before next transfer (adjust as needed)
-        sleep_time = 60  # 1 minutes
-        logger.info(f"Waiting {sleep_time} seconds before next data transfer")
-        time.sleep(sleep_time)
+        if check_internet():
+            retry_pending_data()  # Retry previously failed data first
+
+            try:
+                connection = mysql.connector.connect(**DB_CONFIG)
+                cursor = connection.cursor(dictionary=True)
+
+                cursor.execute("""
+                    SELECT id, ip_address_id, plant_id_id, value1, value2, value3, value4, value5, value6
+                    FROM local_data
+                    WHERE created_at <= NOW() - INTERVAL 1 MINUTE
+                """)
+                data_rows = cursor.fetchall()
+                
+                if data_rows:
+                    for row in data_rows:
+                        ip_address = row["ip_address_id"]
+                        mapped_fields = field_mapping.get(ip_address, {})  # Get the mapping for this IP
+
+                        payload = {"plant_id": row["plant_id_id"]}
+
+                        # Map local_data values to corresponding pid_data fields
+                        for field, pid_field in mapped_fields.items():
+                            if field in row:
+                                payload[pid_field] = row[field]
+
+                        if send_data_to_server(payload):
+                            cursor.execute("DELETE FROM local_data WHERE id = %s", (row["id"],))
+                            connection.commit()
+                        else:
+                            store_pending_data(payload)
+
+                else:
+                    logger.info("No new local data to send.")
+
+            except mysql.connector.Error as e:
+                logger.error(f"Database error: {e}")
+            finally:
+                cursor.close()
+                connection.close()
+
+        else:
+            logger.warning("Internet not available. Storing data for later.")
+
+        time.sleep(60)  # Check every 1 minute
 
 if __name__ == "__main__":
-    main()
+    process_and_send_data()

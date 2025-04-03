@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'local-data', views.LocalDataEntryViewSet)
+router.register(r'pid-data', views.PIDDataViewSet)
 
 urlpatterns = [
     path('', views.user_login, name='login'),
