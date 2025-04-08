@@ -20,6 +20,36 @@
             margin: 0;
             padding: 0;
         }
+        /* Reduce padding inside dropdown items */
+        .custom-dropdown .dropdown-item {
+            padding: 5px 10px; /* Adjust as needed */
+            font-size: 14px; /* Adjust font size */
+        }
+
+        /* Reduce spacing between items */
+        .custom-dropdown {
+            padding: 0; /* Remove padding around the menu */
+            margin: 0; /* Remove margin if any */
+        }
+
+        /* Optionally adjust width of the dropdown */
+        .custom-dropdown .dropdown-menu {
+            min-width: 150px; /* Adjust width to match your project */
+            padding: 0; /* Remove padding around the dropdown menu */
+            border-radius: 5px; /* Adjust border radius if needed */
+            background-color: #fff; /* Set background color (adjust for your design) */
+        }
+
+        /* Style for active items (optional) */
+        .custom-dropdown .dropdown-item.active {
+            background-color: #007bff; /* Adjust active background color */
+            color: #fff; /* Adjust active text color */
+        }
+
+        /* Hover state for dropdown items */
+        .custom-dropdown .dropdown-item:hover {
+            background-color: #f1f1f1; /* Adjust hover background color */
+        }
 
         .custom-navbar {
             background-color: #062A63;
@@ -151,9 +181,21 @@
                 <li class="nav-item" id="plat">
                     <a href="{% url 'pid_data' %}" class="nav-link {% if request.resolver_match.url_name == 'pid_data' %}active{% endif %}">Purification</a>
                 </li>
-                <li class="nav-item" id="plat">
-                    <a href="{% url 'report' %}" class="nav-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">Report</a>
+                <li class="nav-item dropdown" id="plat">
+                    <a href="#" class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'report' %}active{% endif %}" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Reports
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <!-- Link to Report 1 -->
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'report' %}active{% endif %}" href="{% url 'report' %}">Report 1</a></li>
+                        <!-- Link to Report 2 -->
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}" href="{% url 'feedstock_report' %}">Report 2</a></li>
+                        <!-- Link to Report 3 -->
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'powerconsumption_report' %}active{% endif %}" href="{% url 'powerconsumption_report' %}">Report 3</a></li>
+                        <!-- Add more report links as needed -->
+                    </ul>
                 </li>
+                
                 <li class="nav-item" id="plat">
                     <a href="{% url 'create_user' %}" class="nav-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">Users</a>
                 </li>
@@ -190,6 +232,9 @@
             <p><i class="fas fa-envelope"></i> <a href="mailto:admin@echodhara.com">admin@echodhara.com</a></p>
         </div>
     </div>
+<!-- Bootstrap JS (for dropdown) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
       function updateClock() {
         const clock = document.getElementById("clock");

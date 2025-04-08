@@ -47,7 +47,14 @@ def pid_data(request):
     return render(request, 'pid_data.html', context)
 
 def report(request):
-    return render(request, "report.html")
+    expected_clean_gas = 20
+    actual_production = 10
+
+    context = {
+        'expected_clean_gas': expected_clean_gas,
+        'actual_production': actual_production,
+    }
+    return render(request, "report.html", context)
 
 @login_required
 @role_required(['Admin', 'Manager'])
@@ -57,7 +64,7 @@ def create_user(request):
         if form.is_valid():
             try:
                 user = form.save()
-                messages.success(request, f'User {user.username} created successfully!')
+                # messages.success(request, f'User {user.username} created successfully!')
                 return redirect('create_user')  # Redirect back to the same page
             except Exception as e:
                 messages.error(request, f'Error creating user: {str(e)}')
@@ -97,3 +104,9 @@ class PIDDataViewSet(viewsets.ModelViewSet):
         else:
             logger.error(f"PID Data validation error: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def feedstock_report(request):
+    return render(request, 'feedstock_report.html')
+
+def powerconsumption_report(request):
+    return render(request, 'powerconsumption_report.html')
