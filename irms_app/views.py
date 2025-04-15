@@ -110,3 +110,6 @@ def feedstock_report(request):
 
 def powerconsumption_report(request):
     return render(request, 'powerconsumption_report.html')
+
+def dashboard(request):
+    return render(request, 'dashboard.html')
