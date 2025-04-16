@@ -112,4 +112,11 @@ def powerconsumption_report(request):
     return render(request, 'powerconsumption_report.html')
 
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    expected_clean_gas = 20
+    actual_production = 10
+
+    context = {
+        'expected_clean_gas': expected_clean_gas,
+        'actual_production': actual_production,
+    }
+    return render(request, 'dashboard.html', context)
