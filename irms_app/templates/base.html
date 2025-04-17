@@ -21,8 +21,8 @@
     {% block styles %}{% endblock %}
     <style>
         :root {
-            --sidebar-width: 250px;
-            --topbar-height: 60px;
+            --sidebar-width: 280px;
+            --topbar-height: 100px;
             --primary-color: #4e73df;
             --secondary-color: #858796;
             --success-color: #1cc88a;
@@ -72,9 +72,10 @@
             color: rgba(255, 255, 255, 0.8);
             padding: 0.8rem 1.25rem;
             display: flex;
+            margin-top: 8px;
             align-items: center;
             transition: all 0.2s;
-            font-size: 0.85rem;
+            font-size: 1.2rem;
             font-weight: 600;
             text-decoration: none;
             border-left: 4px solid transparent;
@@ -218,7 +219,7 @@
         
         /* Utilities */
         .live-clock {
-            font-size: 0.85rem;
+            font-size: 1.1rem;
             color: var(--sidebar-dark-color);
             display: flex;
             align-items: center;
@@ -226,6 +227,11 @@
         
         .live-clock i {
             margin-right: 0.5rem;
+        }
+        .at-logo {
+            width: 30px;
+            height: 30px;
+            padding: 1px;
         }
         
         /* Responsive Styles */
@@ -347,10 +353,7 @@
     <!-- Sidebar -->
     <div id="sidebar-wrapper">
         <div class="sidebar-heading">
-            <span>Echodhara</span>
-            <button id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+            <span><img src="{% static 'images/echodhara_icon.png' %}" alt=""></span>
         </div>
         
         <div class="list-group">
@@ -404,64 +407,21 @@
     
     <!-- TopBar -->
     <div id="topbar">
-        <button id="sidebarToggleTop">
-            <i class="fas fa-bars"></i>
-        </button>
         
-        <div class="navbar-search">
-            <input type="text" class="form-control" placeholder="Search for...">
-            <i class="fas fa-search search-icon"></i>
+        <div >
+            <h2>Cloud Based Reporting System</h2>
         </div>
         
         <div class="d-flex align-items-center">
             <div class="live-clock me-3">
                 <i class="far fa-calendar-alt"></i>
-                <span id="date">DD/MM/YYYY</span>
+                <span id="date">DD-MM-YYYY</span>
                 <span class="mx-2">|</span>
                 <i class="far fa-clock"></i>
                 <span id="clock">00:00:00</span>
             </div>
             
             <div class="topbar-divider"></div>
-            
-            <!-- Notifications Dropdown
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-bell fa-fw"></i>
-                    <span class="badge bg-danger badge-counter">3+</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end dropdown-notifications" aria-labelledby="notificationsDropdown">
-                    <h6 class="dropdown-header">Notifications Center</h6>
-                    <a class="dropdown-item d-flex align-items-center" href="#">
-                        <div class="notification-icon bg-primary">
-                            <i class="fas fa-file-alt text-white"></i>
-                        </div>
-                        <div>
-                            <div class="notification-text">New report available</div>
-                            <div class="notification-time">15 minutes ago</div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item d-flex align-items-center" href="#">
-                        <div class="notification-icon bg-success">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <div class="notification-text">Process completed successfully</div>
-                            <div class="notification-time">30 minutes ago</div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item d-flex align-items-center" href="#">
-                        <div class="notification-icon bg-warning">
-                            <i class="fas fa-exclamation-triangle text-white"></i>
-                        </div>
-                        <div>
-                            <div class="notification-text">Warning: Low storage space</div>
-                            <div class="notification-time">1 hour ago</div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
-                </div>
-            </div> -->
             
             <!-- User Dropdown -->
             <div class="dropdown ms-3">
@@ -502,7 +462,7 @@
 <footer class="sticky-footer bg-white mt-auto">
     <div class="container my-auto">
         <div class="copyright text-center my-auto">
-            <span>Copyright &copy; Echodhara 2025</span>
+            <span>Developed by Team AT <img class="at-logo" src="{% static 'images/at_logo.jpeg' %}" alt=""></span>
         </div>
     </div>
 </footer>
@@ -552,18 +512,22 @@
 
 <!-- Custom JavaScript -->
 <script>
-// Live Date and Time
+// Live Date and Time with Indian format
 function updateClock() {
     const now = new Date();
     
-    // Update date
-    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const dateStr = now.toLocaleDateString('en-US', dateOptions).replace(/\//g, '/');
+    // Update date in Indian format (DD/MM/YYYY)
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const dateStr = `${day}-${month}-${year}`;
     document.getElementById('date').textContent = dateStr;
     
-    // Update time
-    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-    const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+    // Update time in 24-hour format
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}:${seconds}`;
     document.getElementById('clock').textContent = timeStr;
     
     setTimeout(updateClock, 1000);
@@ -634,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Add custom scripts or chart initializations below
-{% block scripts %}{% endblock %}
 </script>
+{% block scripts %}{% endblock %}
 </body>
 </html>
