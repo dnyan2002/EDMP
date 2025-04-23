@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/scada2.css' %}">
+
+<title>SCADA Monitoring Dashboard</title>
+
+<div class="content">
+    <div id="page-container">
+        <div id="pf1" class="pf w0 h0" data-page-no="1">
+            <div class="pc pc1 w0 h0">
+                <!-- Background image -->
+                <img class="bi x0 y0 w1 h1" alt="SCADA System Layout" src="/static/images/scada1.jpg"/>
+                
+                <!-- Labels and measurements -->
+                <div class="c x0 y1 w2 h0">
+                    <div class="t m0 x29 he y3a ff1 fs4 fc1 sc0 ls4 wsb">{{data.gas_flowmeter1}},</div>
+                    <div class="t m0 x2a he y3b ff1 fs4 fc1 sc0 ls4 ws9">{{data.gas_flowmeter2}}</div>
+                    <div class="t m0 x2b he y3c ff1 fs4 fc1 sc0 ls4 wsb">{{data.mass_flowmeter}},</div>
+                    <div class="t m0 x3b he y5a ff1 fs4 fc1 sc0 ls4 wsb">45.30</div>
+                    
+                    <!-- <div class="t m0 x3a he y6a ff1 fs4 fc1 sc0 ls4 wsb">98.05</div>
+                    <div class="t m0 x3a he y7a ff1 fs4 fc1 sc0 ls4 wsb">17.22</div>
+                    <div class="t m0 x3a he y8a ff1 fs4 fc1 sc0 ls4 wsb">12.15</div>
+                    <div class="t m0 x3a he y3d ff1 fs4 fc1 sc0 ls4 ws9">50.75</div>
+                    <div class="t m0 x3a he y3e ff1 fs4 fc1 sc0 ls4 wsb">60.45,</div> -->
+                </div>
+            </div>
+            <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
+        </div>
+    </div>
+    <div class="loading-indicator"></div>
+</div>
+
+<script>
+(function(){
+    function b(a,b,e,f){var c=(a.className||"").split(/\s+/g);""===c[0]&&c.shift();var d=c.indexOf(b);0>d&&e&&c.push(b);0<=d&&f&&c.splice(d,1);a.className=c.join(" ");return 0<=d}if(!("classList"in document.createElement("div"))){var e={add:function(a){b(this.element,a,!0,!1)},contains:function(a){return b(this.element,a,!1,!1)},remove:function(a){b(this.element,a,!1,!0)},toggle:function(a){b(this.element,a,!0,!0)}};Object.defineProperty(HTMLElement.prototype,"classList",{get:function(){if(this._classList)return this._classList;
+    var a=Object.create(e,{element:{value:this,writable:!1,enumerable:!0}});Object.defineProperty(this,"_classList",{value:a,writable:!1,enumerable:!1});return a},enumerable:!0})}})();
+</script>
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const elements = document.querySelectorAll('.t');
+        
+        // Find the max width for right alignment
+        let maxWidth = 0;
+        
+        elements.forEach(element => {
+            maxWidth = Math.max(maxWidth, getTextWidth(element));
+        });
+
+        // Set all elements to have the same width and right-aligned
+        elements.forEach(element => {
+            element.style.width = `${maxWidth}px`;
+            element.style.textAlign = 'right';
+        });
+    });
+
+    // Helper function to calculate text width
+    function getTextWidth(element) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        context.font = window.getComputedStyle(element).font;
+        return context.measureText(element.textContent).width;
+    }
+</script>
+{% endblock %}

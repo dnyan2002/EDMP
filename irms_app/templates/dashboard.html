@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block styles %}
+    <style> 
+    .status-card {
+        height: 100%;
+    }
+    .status-text {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+    .status-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-top: 0.5rem;
+    }
+    .status-subtext {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        opacity: 0.9;
+    }
+        
+    .status-card-primary {
+        border-left-color: var(--primary-color);
+    }
+    
+    .status-card-success {
+        border-left-color: var(--success-color);
+    }
+    
+    .status-card-info {
+        border-left-color: var(--info-color);
+    }
+    
+    .status-card-warning {
+        border-left-color: var(--warning-color);
+    }
+    
+    .status-card .card-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem;
+    }
+    
+    .status-card .status-icon {
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+    
+    .status-card-primary .status-text {
+        color: var(--primary-color);
+    }
+    
+    .status-card-success .status-text {
+        color: var(--success-color);
+    }
+    
+    .status-card-info .status-text {
+        color: var(--info-color);
+    }
+    
+    .status-card-warning .status-text {
+        color: var(--warning-color);
+    }
+    
+    /* New styles for chart legends with values */
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 15px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 10px;
+    }
+    
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        margin-right: 8px;
+        border-radius: 3px;
+    }
+    
+    .legend-label {
+        font-size: 12px;
+        margin-right: 5px;
+    }
+    
+    .legend-value {
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .bg-light-aqua {
+    background-color: #d0f0fd;
+    color: #0277bd;
+}
+
+
+
+    </style>
+{% endblock %}
+{% block content %}
+<!-- Status Cards Row -->
+<div class="row">
+    <div class="container-fluid">
+        <!-- First row of status cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="status-card bg-primary text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Hourly Actual Clean Gas Production</div>
+                            <div class="status-value">842.1 nm³</div>
+                            <div class="status-subtext">Hourly Expected Clean Gas Production: 856.4 nm³</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="status-card bg-success text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Hourly Actual CBG Production</div>
+                            <div class="status-value">34.2 T</div>
+                            <div class="status-subtext">Hourly Expected CBG Production: 35.2 T</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="status-card bg-info text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Hourly Feedstock Used</div>
+                            <div class="status-value">125 T</div>
+                            <div class="status-subtext">Feedstock Cost: ₹75000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="status-card bg-warning text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Hourly Raw BioGas Produced</div>
+                            <div class="status-value">12500 nm³</div>
+                            <div class="status-subtext">Hourly CO₂ Savings: 62.5 Mt</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Second row of status cards -->
+        <div class="row">
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="status-card bg-danger text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Power Consumption</div>
+                            <div class="status-value">650 kW</div>
+                            <div class="status-subtext">Power Cost: ₹62400</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="status-card bg-secondary text-white rounded shadow">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Hourly FOM Bags Generated</div>
+                            <div class="status-value">200</div>
+                            <!-- <div class="status-subtext">Last Replacement: 42 days ago</div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="status-card" style="background-color: #5e418c; color: white; border-radius: 0.25rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);">
+                    <div class="card-body">
+                        <div>
+                            <div class="status-text">Running Hours</div>
+                            <div class="status-value">20</div>
+                            <div class="status-subtext">Stoppage Hours: 4</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Area Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card card-dashboard shadow mb-4">
+            <div class="card-header">
+                <h6>Production Overview</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="#">Daily</a></li>
+                        <li><a class="dropdown-item" href="#">Weekly</a></li>
+                        <li><a class="dropdown-item" href="#">Monthly</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="production-charts-container" style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+                    <div class="chart-section" style="flex: 1; min-width: 300px; text-align: center; padding: 10px;">
+                        <h5>Expected Clean Gas & Actual Production</h5>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="expectedCleanGasChart"></canvas>
+                        </div>
+                        <div id="expectedCleanGasLegend" class="chart-legend"></div>
+                    </div>
+                    <div class="chart-section" style="flex: 1; min-width: 300px; text-align: center; padding: 10px;">
+                        <h5>Expected Production & Actual CBG Production</h5>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="actualProductionChart"></canvas>
+                        </div>
+                        <div id="actualProductionLegend" class="chart-legend"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+
+<!-- Process Distribution Pie Chart -->
+<div class="col-xl-4 col-lg-5">
+    <div class="card card-dashboard shadow mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-body">
+            <div style="position: relative; height: 300px;">
+                <canvas id="biogasChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Content Row -->
+<div class="row">
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Make sure Chart.js is loaded only once and from the correct path -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded, checking for Chart.js...");
+        
+        if (typeof Chart === 'undefined') {
+            console.error("Chart.js not loaded properly!");
+            return;
+        }
+        
+        console.log("Chart.js is loaded, creating charts...");
+        
+        try {
+            // Function to create custom legend with values
+            function createCustomLegend(chartId, data, labels, colors) {
+                const legendContainer = document.getElementById(chartId);
+                legendContainer.innerHTML = '';
+                
+                for (let i = 0; i < data.length; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'legend-item';
+                    
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'legend-color';
+                    colorBox.style.backgroundColor = colors[i];
+                    
+                    const label = document.createElement('div');
+                    label.className = 'legend-label';
+                    label.textContent = labels[i] + ': ';
+                    
+                    const value = document.createElement('div');
+                    value.className = 'legend-value';
+                    value.textContent = data[i].toString();
+                    
+                    item.appendChild(colorBox);
+                    item.appendChild(label);
+                    item.appendChild(value);
+                    legendContainer.appendChild(item);
+                }
+            }
+            
+            
+            {% if expected_clean_gas %}
+                expectedCleanGas = {{ expected_clean_gas }};
+            {% endif %}
+            
+            {% if actual_production %}
+                actualProduction = {{ actual_production }};
+            {% endif %}
+            
+            // Expected Clean Gas Chart
+            var ctx1 = document.getElementById('expectedCleanGasChart');
+            if (ctx1) {
+                var cleanGasColors = ['#88EA16', '#1badd9'];
+                var cleanGasData = [856.4, 842.1];
+                var cleanGasLabels = ['Expected Clean Gas (m³/hr)', 'Actual Production (m³/hr)'];
+                
+                var expectedCleanGasChart = new Chart(ctx1, {
+                    type: 'pie',
+                    data: {
+                        labels: cleanGasLabels,
+                        datasets: [{
+                            data: cleanGasData,
+                            backgroundColor: cleanGasColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // Create custom legend with values for clean gas chart
+                createCustomLegend('expectedCleanGasLegend', cleanGasData, cleanGasLabels, cleanGasColors);
+            }
+            
+            // Actual Production Chart
+            var ctx2 = document.getElementById('actualProductionChart');
+            if (ctx2) {
+                var productionColors = ['#88EA16', '#1badd9'];
+                var productionData = [35.2, 34.2];
+                var productionLabels = ['Expected Production (T/hr)', 'Actual CBG Production (T/hr)'];
+                
+                var actualProductionChart = new Chart(ctx2, {
+                    type: 'pie',
+                    data: {
+                        labels: productionLabels,
+                        datasets: [{
+                            data: productionData,
+                            backgroundColor: productionColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // Create custom legend with values for production chart
+                createCustomLegend('actualProductionLegend', productionData, productionLabels, productionColors);
+            }
+
+            // Line Chart: Biogas and CO2
+            var ctx3 = document.getElementById('biogasChart');
+            if (ctx3) {
+                const biogasData = {
+                    labels: ['1:00', '1:10', '1:20', '1:30', '1:40', '1:50'],
+                    datasets: [
+                        {
+                            label: 'Biogas Produced (nm³)',
+                            data: [2050, 2100, 2085, 2120, 2070, 2075],  // approx values adding to ~12500
+                            borderColor: '#42a5f5',
+                            yAxisID: 'y1',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'CO₂ Savings (Mt)',
+                            data: [10.2, 10.5, 10.3, 10.6, 10.4, 10.5],  // approx values adding to ~62.5
+                            borderColor: '#66bb6a',
+                            yAxisID: 'y2',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                };
+                new Chart(ctx3, {
+                    type: 'line',
+                    data: biogasData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        stacked: false,
+                        plugins: {
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Biogas Produced (nm³)'
+                                },
+                                beginAtZero: true
+                            },
+                            y2: {
+                                type: 'linear',
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'CO₂ Savings (Mt)'
+                                },
+                                beginAtZero: true,
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+
+
+            console.log("Charts created successfully!");
+        } catch (error) {
+            console.error("Error creating charts:", error);
+        }
+    });
+</script>
+
+
+{% endblock %}
