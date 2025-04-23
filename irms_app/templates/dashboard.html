@@ -249,6 +249,8 @@
     </div>
 </div>
 
+
+
 <!-- Content Row -->
 <div class="row">
 </div>
@@ -256,8 +258,6 @@
 
 {% block scripts %}
 <!-- Make sure Chart.js is loaded only once and from the correct path -->
-<!-- <script src="{% static 'js/chart.min.js' %}" type="text/javascript"></script> -->
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         console.log("DOM loaded, checking for Chart.js...");
@@ -298,11 +298,6 @@
                 }
             }
             
-            // Get default values or values from template context
-            var expectedCleanGas = 856.4;
-            var actualCleanGas = 842.1;
-            var expectedProduction = 35.2;
-            var actualProduction = 34.8;
             
             {% if expected_clean_gas %}
                 expectedCleanGas = {{ expected_clean_gas }};
@@ -316,7 +311,7 @@
             var ctx1 = document.getElementById('expectedCleanGasChart');
             if (ctx1) {
                 var cleanGasColors = ['#88EA16', '#1badd9'];
-                var cleanGasData = [expectedCleanGas, actualCleanGas];
+                var cleanGasData = [856.4, 842.1];
                 var cleanGasLabels = ['Expected Clean Gas (m³/hr)', 'Actual Production (m³/hr)'];
                 
                 var expectedCleanGasChart = new Chart(ctx1, {
@@ -347,7 +342,7 @@
             var ctx2 = document.getElementById('actualProductionChart');
             if (ctx2) {
                 var productionColors = ['#88EA16', '#1badd9'];
-                var productionData = [expectedProduction, actualProduction];
+                var productionData = [35.2, 34.2];
                 var productionLabels = ['Expected Production (T/hr)', 'Actual CBG Production (T/hr)'];
                 
                 var actualProductionChart = new Chart(ctx2, {
@@ -373,44 +368,88 @@
                 // Create custom legend with values for production chart
                 createCustomLegend('actualProductionLegend', productionData, productionLabels, productionColors);
             }
-            
-            // Process Distribution Chart
-            var ctx3 = document.getElementById('processDistributionChart');
+
+            // Line Chart: Biogas and CO2
+            var ctx3 = document.getElementById('biogasChart');
             if (ctx3) {
-                var processColors = ['#e74a3b', '#f6c23e', '#4e73df', '#36b9cc', '#1cc88a'];
-                var processData = [15, 25, 20, 30, 10];
-                var processLabels = ['Slurry', 'Feed', 'Purification', 'Quality', 'Packaging'];
-                
-                var processDistributionChart = new Chart(ctx3, {
-                    type: 'doughnut',
-                    data: {
-                        labels: processLabels,
-                        datasets: [{
-                            data: processData,
-                            backgroundColor: processColors
-                        }]
-                    },
+                const biogasData = {
+                    labels: ['1:00', '1:10', '1:20', '1:30', '1:40', '1:50'],
+                    datasets: [
+                        {
+                            label: 'Biogas Produced (nm³)',
+                            data: [2050, 2100, 2085, 2120, 2070, 2075],  // approx values adding to ~12500
+                            borderColor: '#42a5f5',
+                            yAxisID: 'y1',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'CO₂ Savings (Mt)',
+                            data: [10.2, 10.5, 10.3, 10.6, 10.4, 10.5],  // approx values adding to ~62.5
+                            borderColor: '#66bb6a',
+                            yAxisID: 'y2',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                };
+                new Chart(ctx3, {
+                    type: 'line',
+                    data: biogasData,
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        cutout: '70%',
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        stacked: false,
                         plugins: {
-                            legend: {
-                                display: false
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Biogas Produced (nm³)'
+                                },
+                                beginAtZero: true
+                            },
+                            y2: {
+                                type: 'linear',
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'CO₂ Savings (Mt)'
+                                },
+                                beginAtZero: true,
+                                grid: {
+                                    drawOnChartArea: false
+                                }
                             }
                         }
                     }
                 });
-                
-                // Create custom legend with values for process distribution chart
-                createCustomLegend('processDistributionLegend', processData, processLabels, processColors);
             }
             
-            console.log("Charts and legends created successfully!");
+
+
+            console.log("Charts created successfully!");
         } catch (error) {
             console.error("Error creating charts:", error);
-            console.error(error.stack); // Show the full error stack trace
         }
     });
 </script>
+
+
 {% endblock %}
