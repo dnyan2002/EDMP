@@ -188,3 +188,76 @@ class PIDData(models.Model):
         verbose_name = 'Slurry and Purification Data'
         verbose_name_plural = 'Slurry and Purification Data'
         db_table = 'pid_data'
+
+
+
+class BiogasPlantReport(models.Model):
+    date = models.DateField(auto_now=True)  
+
+    feedstock_used_ton = models.FloatField()
+    feedstock_cost_per_ton = models.FloatField(null=True, blank=True)
+    total_feed_cost = models.FloatField()
+
+    raw_biogas_produced_nm3 = models.FloatField()
+    methane_content_percent = models.FloatField()
+    
+    expected_clean_gas_nm3 = models.FloatField()
+    actual_clean_gas_nm3 = models.FloatField()
+    purification_loss_nm3 = models.FloatField()
+    purification_loss_percent = models.FloatField()
+
+    expected_production_kg = models.FloatField()
+    actual_cbg_production_kg = models.FloatField()
+    methane_loss_kg = models.FloatField()
+    methane_loss_percent = models.FloatField()
+    gas_purity_percent = models.FloatField()
+
+    power_consumption_kwh = models.FloatField()
+    power_cost_per_unit = models.FloatField(null=True, blank=True)
+    total_power_cost = models.FloatField()
+
+    co2_savings_mt = models.FloatField()
+    fom_bag_count = models.IntegerField(null=True, blank=True)
+
+    cbg_sale_dispatch_ton = models.FloatField(null=True, blank=True)
+
+    running_time = models.DurationField()
+    stoppage_time = models.DurationField()
+
+    
+
+    def __str__(self):
+        return f"Report - {self.date}"
+
+
+
+
+class FeedstockCost(models.Model):
+    cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Cost (Rs)")
+    cost_per_ton = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cost per Ton of Feed (Rs)")
+    date_recorded = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_entry_type_display()} - Rs {self.cost} (Rs {self.cost_per_ton}/ton)"
+
+
+class PowerCost(models.Model):
+    cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Power Cost (Rs)")
+    cost_per_unit = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cost per Unit of Power (Rs)")
+    date_recorded = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_entry_type_display()} - Rs {self.cost} (Rs {self.cost_per_unit}/unit)"
+
+
+class CBGSaleDispatch(models.Model):
+    dispatch_quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Dispatch Quantity (Ton)")
+    unit = models.CharField(max_length=10, default='Ton')
+    date_recorded = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_entry_type_display()} - {self.dispatch_quantity} {self.unit}"
+
+
+
+

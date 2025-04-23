@@ -263,6 +263,13 @@
             padding: 10px;
         }
     }
+
+        canvas {
+          max-width: 50%;
+          max-height: 85%;
+        }
+
+      
 </style>
 
 <!-- Modal for viewing images -->
@@ -339,10 +346,26 @@
             </select> 
         </div>
         
+         {% endcomment %}
+         
+         <!-- Shift Selection -->
+        <div class="form-group" id="shift-group"> 
+            <label for="shift">Shift</label> 
+            <select id="shift" name="shift" class="form-control"> 
+                <option value="">Select Shift</option>
+                <option value="General Shift" {% if selected_shift == "General Shift" %}selected{% endif %}>General Shift</option>
+                <option value="Night Shift" {% if selected_shift == "Night Shift" %}selected{% endif %}>Night Shift</option>
+            </select> 
+        </div>
+
         <div class="button-group">
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
             <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
             <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button type="submit" name="month_button" class="report-button">Month</button>
+            <button type="submit" name="filter_type" value="day" class="report-button">
+                <i class="fas fa-calendar-day"></i> Day</button>
+
         </div>
     </form>
 
@@ -600,6 +623,12 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Plugin for labels outside pie chart -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+{% comment %} <script>
     // Data for the pie charts
     var expectedCleanGas = {{ expected_clean_gas }};
     var actualProduction = {{ actual_production }};
@@ -661,5 +690,98 @@
             }
         }
     });
+
+    </script> {% endcomment %}
+    <script>
+        // Register the plugin globally
+        Chart.register(ChartDataLabels);
+    
+        var expectedCleanGas = {{ expected_clean_gas }};
+        var actualProduction = {{ actual_production }};
+        var remainingGas = 100 - expectedCleanGas;
+        var remainingProduction = 100 - actualProduction;
+    
+        // Expected Clean Gas Pie Chart
+        var ctx1 = document.getElementById('expectedCleanGasChart').getContext('2d');
+        var expectedCleanGasChart = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: ['Expected Clean Gas', 'Actual Production'],
+                datasets: [{
+                    data: [expectedCleanGas, remainingGas],
+                    backgroundColor: ['#88EA16', '#1badd9']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    datalabels: {
+                        color: '#000',
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: function(value) {
+                            return value + '%';  // Label outside
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    
+        // Actual Production Pie Chart
+        var ctx2 = document.getElementById('actualProductionChart').getContext('2d');
+        var actualProductionChart = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['Expected Production', 'Actual CBG Production'],
+                datasets: [{
+                    data: [actualProduction, remainingProduction],
+                    backgroundColor: ['#88EA16', '#1badd9']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    datalabels: {
+                        color: '#000',
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: function(value) {
+                            return value + '%';
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
     </script>
+    
 {% endblock %}

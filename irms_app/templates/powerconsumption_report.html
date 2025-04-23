@@ -334,6 +334,14 @@
                     </option> 
                 {% endfor %} 
             </select> 
+        </div> {% endcomment %}
+        <div class="form-group" id="shift-group"> 
+            <label for="shift">Shift</label> 
+            <select id="shift" name="shift" class="form-control"> 
+                <option value="">Select Shift</option>
+                <option value="General Shift" {% if selected_shift == "General Shift" %}selected{% endif %}>General Shift</option>
+                <option value="Night Shift" {% if selected_shift == "Night Shift" %}selected{% endif %}>Night Shift</option>
+            </select> 
         </div>
         
         <!-- <div class="form-group">
@@ -348,6 +356,9 @@
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
             <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
             <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
+             <button type="submit" name="month_button" class="report-button">Month</button>
+            <button type="submit" name="filter_type" value="day" class="report-button">
+                <i class="fas fa-calendar-day"></i> Day</button>
         </div>
     </form>
 
@@ -406,6 +417,7 @@
                 data: formData,
                 success: function (data) {
                     $('#resultsTableBody').empty(); // Clear previous results
+                    $('#resultsTableBody').empty(); 
                     if (data.length > 0) {
                         data.forEach(function (result) {
                             var newRow = "<tr>" +
@@ -692,5 +704,75 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+        var powerData = {
+            labels: ['January', 'February', 'March', 'April', 'May'],
+            datasets: [{
+                label: 'Power Consumption (kWh)',
+                data: [100, 120, 110, 130, 140],
+                backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 2,
+                fill: false,
+                yAxisID: 'y1'
+            }, {
+                label: 'Power Cost (Currency)',
+                data: [200, 240, 220, 260, 280],
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false,
+                yAxisID: 'y2'
+            }]
+        };
+    
+        var ctx3 = document.getElementById('powerChart').getContext('2d');
+        var powerChart = new Chart(ctx3, {
+            type: 'line',
+            data: powerData,
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Power Consumption (kWh)'
+                        },
+                        beginAtZero: true,
+                        min: 0,
+                        max: 1200
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Power Cost (Currency)'
+                        },
+                        beginAtZero: true,
+                        min: 0,
+                        max: 800,
+                        grid: {
+                            drawOnChartArea: false // Keep grids separate
+                        }
+                    }
+                }
+            }
+        });
+    });
+    
 </script>
 {% endblock %}

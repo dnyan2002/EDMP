@@ -376,20 +376,29 @@
                 </a>
                 <div class="sidebar-submenu">
                     <a href="{% url 'report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 1
+                        <i class="fas fa-file-alt"></i> Production Report
                     </a>
                     <a href="{% url 'feedstock_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 2
+                        <i class="fas fa-file-alt"></i> Feedstock Report 
                     </a>
                     <a href="{% url 'powerconsumption_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'powerconsumption_report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 3
+                        <i class="fas fa-file-alt"></i> Power Consumption Report
                     </a>
                 </div>
             </div>
-            
+            {% if request.user.is_authenticated and request.user.is_staff %}
             <a href="{% url 'create_user' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
                 <i class="fas fa-users"></i> Users
             </a>
+        {% endif %}
+
+            {% comment %} <a href="{% url 'create_user' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
+                <i class="fas fa-users"></i> Users
+            </a> {% endcomment %}
+            <a href="{% url 'manual_entry' %}" class="sidebar-link {% if request.resolver_match.url_name == 'manual_entry' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i> Manual Entry
+            </a>
+            
             
             <a href="{% url 'admin:index' %}" class="sidebar-link">
                 <i class="fas fa-cogs"></i> Admin Panel

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import CustomUser, Role, PIDData, Plant
+from .models import BiogasPlantReport, FeedstockCost, PowerCost, CBGSaleDispatch
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Username", max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -63,3 +64,47 @@ class PIDDataForm(forms.ModelForm):
     class Meta:
         model = PIDData
         fields = '__all__'
+
+
+
+
+class BiogasPlantReportForm(forms.ModelForm):
+    class Meta:
+        model = BiogasPlantReport
+        fields = '__all__'
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'running_time': forms.TimeInput(attrs={'type': 'time'}),
+            'stoppage_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+
+
+class FeedstockCostForm(forms.ModelForm):
+    class Meta:
+        model = FeedstockCost
+        fields = ['cost', 'cost_per_ton']
+        widgets = {
+            'cost': forms.NumberInput(attrs={'step': '0.01'}),
+            'cost_per_ton': forms.NumberInput(attrs={'step': '0.01'}),
+        }
+
+
+class PowerCostForm(forms.ModelForm):
+    class Meta:
+        model = PowerCost
+        fields = ['cost', 'cost_per_unit']
+        widgets = {
+            'cost': forms.NumberInput(attrs={'step': '0.01'}),
+            'cost_per_unit': forms.NumberInput(attrs={'step': '0.01'}),
+        }
+
+
+class CBGSaleDispatchForm(forms.ModelForm):
+    class Meta:
+        model = CBGSaleDispatch
+        fields = ['dispatch_quantity', 'unit']
+        widgets = {
+            'dispatch_quantity': forms.NumberInput(attrs={'step': '0.01'}),
+            'unit': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
