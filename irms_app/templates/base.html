@@ -376,6 +376,22 @@
                 </a>
                 <div class="sidebar-submenu">
                     <a href="{% url 'report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+<<<<<<< HEAD
+                        <i class="fas fa-file-alt"></i> Report 1
+                    </a>
+                    <a href="{% url 'feedstock_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Report 2
+                    </a>
+                    <a href="{% url 'powerconsumption_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'powerconsumption_report' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Report 3
+                    </a>
+                </div>
+            </div>
+            
+            <a href="{% url 'create_user' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
+                <i class="fas fa-users"></i> Users
+            </a>
+=======
                         <i class="fas fa-file-alt"></i> Production Report
                     </a>
                     <a href="{% url 'feedstock_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}">
@@ -399,14 +415,22 @@
                 <i class="fas fa-file-alt"></i> Manual Entry
             </a>
             
+>>>>>>> 506f897 (add manual entry screen)
             
             <a href="{% url 'admin:index' %}" class="sidebar-link">
                 <i class="fas fa-cogs"></i> Admin Panel
             </a>
             
+<<<<<<< HEAD
             <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#contactModal">
                 <i class="fas fa-envelope"></i> Contact
             </a>
+=======
+          <!-- Contact Modal -->
+                <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#contactModal">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+>>>>>>> 506f897 (add manual entry screen)
             
             <a href="{% url 'logout' %}" class="sidebar-link">
                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -468,50 +492,51 @@
             {% endblock %}
         </div>
 <!-- Footer -->
-<footer class="sticky-footer bg-white mt-auto">
-    <div class="container my-auto">
-        <div class="copyright text-center my-auto">
-            <span>Developed by Team AT <img class="at-logo" src="{% static 'images/at_logo.jpeg' %}" alt=""></span>
+        <footer class="sticky-footer bg-white mt-auto">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Developed by Team AT <img class="at-logo" src="{% static 'images/at_logo.jpeg' %}" alt=""></span>
+                </div>
+            </div>
+        </footer>
         </div>
-    </div>
-</footer>
-</div>
 
-<!-- Contact Modal -->
-<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
-<div class="modal-dialog">
-    <div class="modal-content">
+
+  
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+    
+        <!-- Optional Header (you can remove if you don't need a title) -->
         <div class="modal-header">
-            <h5 class="modal-title" id="contactModalLabel">Contact Support</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="contactModalLabel">Contact Echodhara</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-            <form>
-                <div class="mb-3">
-                    <label for="contactName" class="form-label">Name</label>
-                    <input type="text" class="form-control" id="contactName" placeholder="Your Name">
-                </div>
-                <div class="mb-3">
-                    <label for="contactEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="contactEmail" placeholder="your.email@example.com">
-                </div>
-                <div class="mb-3">
-                    <label for="contactSubject" class="form-label">Subject</label>
-                    <input type="text" class="form-control" id="contactSubject" placeholder="Subject">
-                </div>
-                <div class="mb-3">
-                    <label for="contactMessage" class="form-label">Message</label>
-                    <textarea class="form-control" id="contactMessage" rows="4" placeholder="Your message..."></textarea>
-                </div>
-            </form>
+  
+        <!-- Body -->
+        <div class="modal-body text-center">
+          <img src="{% static 'images/echodhara_logo.png' %}" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;">
+          <h6>Echodhara Magnatek</h6>
+          <p class="mb-1"><i class="fas fa-phone"></i> +91 9865450000</p>
+          <p class="mb-1">
+            <i class="fas fa-globe"></i>
+            <a href="https://ecodharamagnatek.com/" target="_blank">ecodharamagnatek.com</a>
+          </p>
+          <p>
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:admin@echodhara.com">admin@echodhara.com</a>
+          </p>
         </div>
+  
+        {% comment %} <!-- Optional Footer -->
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Send Message</button>
-        </div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div> {% endcomment %}
+  
+      </div>
     </div>
-</div>
-</div>
+  </div>
 
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
