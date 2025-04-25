@@ -222,6 +222,10 @@ class BiogasPlantReport(models.Model):
 
     running_time = models.DurationField()
     stoppage_time = models.DurationField()
+    shift = models.CharField(max_length=20, choices=[
+        ('General Shift', 'General Shift'),
+        ('Night Shift', 'Night Shift')
+    ], default='General Shift')
 
     def __str__(self):
         return f"Report - {self.date}"

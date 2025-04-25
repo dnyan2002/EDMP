@@ -389,30 +389,59 @@
     
     <!-- Display area for results -->
     <div id="resultsContainer">
-        <table class="data-table">    
+        <table class='data-table' border="1" cellpadding="8">
             <thead>
                 <tr>
-                    <th>Gas Generation</th>
-                    <th>Energy Consumption </th>
-                    <th>Shift</th>
                     <th>Date</th>
+                    <th>Feedstock Used (ton)</th>
+                    <th>Total Feed Cost</th>
+                    <th>Raw Biogas Produced (Nm³)</th>
+                    <th>Expected Clean Gas (Nm³)</th>
+                    <th>Actual Clean Gas (Nm³)</th>
+                    <th>Purification Loss (Nm³)</th>
+                    <th>Purification Loss (%)</th>
+                    <th>Expected CBG (kg)</th>
+                    <th>Actual CBG (kg)</th>
+                    <th>Methane Loss (kg)</th>
+                    <th>Methane Loss (%)</th>
+                    <th>Gas Purity (%)</th>
+                    <th>Power Consumed (kWh)</th>
+                    <th>Total Power Cost</th>
+                    <th>CO₂ Savings (MT)</th>
+                    <th>FoM Bags</th>
+                    <th>CBG Sale Dispatch (ton)</th>
+                    <th>Running Time</th>
+                    <th>Stoppage Time</th>
                 </tr>
             </thead>
             <tbody>
-                {% for report in report_data %}
-                    <tr>
-                        <td>{{ report.highest_value }}</td>
-                        <td>{{ report.filter_no }}</td>
-                        <td>{{ report.shift }}</td>
-                        <td>{{ report.date }}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="6">No data found for the selected status.</td>
-                    </tr>
+                {% for r in reports %}
+                <tr>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.feedstock_used_ton }}</td>
+                    <td>{{ r.total_feed_cost }}</td>
+                    <td>{{ r.raw_biogas_produced_nm3 }}</td>
+                    <td>{{ r.expected_clean_gas_nm3 }}</td>
+                    <td>{{ r.actual_clean_gas_nm3 }}</td>
+                    <td>{{ r.purification_loss_nm3 }}</td>
+                    <td>{{ r.purification_loss_percent|floatformat:2 }}</td>
+                    <td>{{ r.expected_production_kg }}</td>
+                    <td>{{ r.actual_cbg_production_kg }}</td>
+                    <td>{{ r.methane_loss_kg }}</td>
+                    <td>{{ r.methane_loss_percent|floatformat:2 }}</td>
+                    <td>{{ r.gas_purity_percent }}</td>
+                    <td>{{ r.power_consumption_kwh }}</td>
+                    <td>{{ r.total_power_cost }}</td>
+                    <td>{{ r.co2_savings_mt }}</td>
+                    <td>{{ r.fom_bag_count }}</td>
+                    <td>{{ r.cbg_sale_dispatch_ton }}</td>
+                    <td>{{ r.running_time }}</td>
+                    <td>{{ r.stoppage_time }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -626,95 +655,147 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Get chart data from the server (passed as JSON)
+        var chartData = {{ chart_data|safe }};
+        
         // Data for Feedstock Used vs Feedstock Cost
         var feedstockData = {
-            labels: ['January', 'February', 'March', 'April', 'May'], // Example months
+            labels: chartData.feedstock.labels,
             datasets: [{
-                label: 'Feedstock Used (Units)',
-                data: [10, 20, 15, 25, 30], // Example data
-                borderColor: 'rgba(54, 162, 235, 1)', // Line color
-                backgroundColor: 'rgba(54, 162, 235, 0.2)', // Line fill color
-                fill: true, // Fill the area under the line
-                tension: 0.1 // Line smoothness
+                label: 'Feedstock Used (Tons)',
+                data: chartData.feedstock.feedstock_used,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+                tension: 0.1,
+                yAxisID: 'y-axis-1'
             }, {
                 label: 'Feedstock Cost (Currency)',
-                data: [1000, 1500, 1200, 1800, 2000], // Example data
-                borderColor: 'rgba(255, 99, 132, 1)', // Line color
-                backgroundColor: 'rgba(255, 99, 132, 0.2)', // Line fill color
-                fill: true, // Fill the area under the line
-                tension: 0.1 // Line smoothness
+                data: chartData.feedstock.feedstock_cost,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+                tension: 0.1,
+                yAxisID: 'y-axis-2'
             }]
         };
-
+    
         // Data for Biogas Produced vs CO2 Savings
         var biogasData = {
-            labels: ['January', 'February', 'March', 'April', 'May'], // Example months
+            labels: chartData.biogas.labels,
             datasets: [{
-                label: 'Biogas Produced (m³)',
-                data: [200, 250, 225, 275, 300], // Example data
-                borderColor: 'rgba(75, 192, 192, 1)', // Line color
-                backgroundColor: 'rgba(75, 192, 192, 0.2)', // Line fill color
-                fill: true, // Fill the area under the line
-                tension: 0.1 // Line smoothness
+                label: 'Biogas Produced (nm³)',
+                data: chartData.biogas.biogas_produced,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.1,
+                yAxisID: 'y-axis-1'
             }, {
-                label: 'CO2 Savings (kg)',
-                data: [500, 600, 550, 650, 700], // Example data
-                borderColor: 'rgba(153, 102, 255, 1)', // Line color
-                backgroundColor: 'rgba(153, 102, 255, 0.2)', // Line fill color
-                fill: true, // Fill the area under the line
-                tension: 0.1 // Line smoothness
+                label: 'CO2 Savings (MT)',
+                data: chartData.biogas.co2_savings,
+                borderColor: 'rgba(153, 102, 255, 1)',
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                fill: true,
+                tension: 0.1,
+                yAxisID: 'y-axis-2'
             }]
         };
-
+    
         // Create the Feedstock chart
         var ctx1 = document.getElementById('feedstockChart').getContext('2d');
         var feedstockChart = new Chart(ctx1, {
-            type: 'line', // You can change this to 'bar' for a bar chart
+            type: 'line',
             data: feedstockData,
             options: {
                 responsive: true,
                 scales: {
+                    'y-axis-1': {
+                        type: 'linear',
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Feedstock Used (Tons)'
+                        },
+                        beginAtZero: true
+                    },
+                    'y-axis-2': {
+                        type: 'linear',
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Cost'
+                        },
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false // only want the grid lines for one axis to show up
+                        }
+                    },
                     x: {
                         title: {
                             display: true,
-                            text: 'Months'
+                            text: '{{ selected_info }}'
                         }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Value'
-                        },
-                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Feedstock Analysis'
                     }
                 }
             }
         });
-
+    
         // Create the Biogas chart
         var ctx2 = document.getElementById('biogasChart').getContext('2d');
         var biogasChart = new Chart(ctx2, {
-            type: 'line', // You can change this to 'bar' for a bar chart
+            type: 'line',
             data: biogasData,
             options: {
                 responsive: true,
                 scales: {
+                    'y-axis-1': {
+                        type: 'linear',
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Biogas (nm³)'
+                        },
+                        beginAtZero: true
+                    },
+                    'y-axis-2': {
+                        type: 'linear',
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'CO2 Savings (MT)'
+                        },
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    },
                     x: {
                         title: {
                             display: true,
-                            text: 'Months'
+                            text: '{{ selected_info }}'
                         }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Value'
-                        },
-                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Environmental Impact'
                     }
                 }
             }
         });
+        
+        // If there's no data, show a message
+        if (chartData.feedstock.labels.length === 0) {
+            document.querySelector('.report-container').innerHTML = '<div class="alert alert-info">No data available for the selected filters.</div>';
+        }
     });
 </script>
 
