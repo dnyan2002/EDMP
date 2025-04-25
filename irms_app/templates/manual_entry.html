@@ -17,12 +17,14 @@
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
+            {{ feed_form.management_form }}
             <div class="mb-3">
               {{ feed_form.cost_per_ton.label_tag }}
               {{ feed_form.cost_per_ton|add_class:"form-control" }}
             </div>
             <button type="submit" name="feedstock_submit" class="btn btn-primary w-100">Save</button>
           </form>
+          
         </div>
         <div class="card-footer bg-light text-center"></div>
       </div>
@@ -86,15 +88,15 @@
           <form method="post">
             {% csrf_token %}
             <div class="mb-3">
-              {{ cbg_form.dispatch_quantity.label_tag }}
-              {{ cbg_form.dispatch_quantity|add_class:"form-control" }}
+              {{ fom_form.dispatch_quantity.label_tag }}
+              {{ fom_form.dispatch_quantity|add_class:"form-control" }}
             </div>
             <div class="mb-3">
-              {{ cbg_form.unit.label_tag }}
-              {{ cbg_form.unit|add_class:"form-control" }}
+              {{ fom_form.unit.label_tag }}
+              {{ fom_form.unit|add_class:"form-control" }}
             </div>
             <button type="submit" name="fom_submit" class="btn btn-info w-100 text-white">Save</button>
-          </form>
+          </form>          
         </div>
         <div class="card-footer bg-light text-center"></div>
       </div>
