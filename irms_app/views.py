@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout 
 from django.urls import reverse
+from django.contrib.messages import success
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import matplotlib
 matplotlib.use('agg')
@@ -12,7 +14,8 @@ from .permissions import role_required
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .serializers import PIDDataSerializer
-
+import logging
+from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm, FOMSaleDispatchForm, BiogasPlantReportForm
 import random
 from datetime import datetime
 
@@ -81,7 +84,6 @@ def create_user(request):
         'users': users
     })
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -125,23 +127,6 @@ def dashboard(request):
 def bagsgenerated_report(request):
     return render(request, 'bags.html')
 
-
-# views.py
-from django.shortcuts import render, redirect
-from .forms import (
-    BiogasPlantReportForm,
-  
-)
-
-# from django.shortcuts import render
-# from .models import BiogasPlantReport
-
-# def biogas_report_list(request):
-#     reports = BiogasPlantReport.objects.all().order_by('-date')
-#     return render(request, 'biogas_report_list.html', {'reports': reports})
-from django.http import JsonResponse
-from .models import BiogasPlantReport
-
 def biogas_report_json(request):
     reports = BiogasPlantReport.objects.all().order_by('-date')
     
@@ -161,9 +146,6 @@ def biogas_report_json(request):
 
     return JsonResponse({'reports': data})
 
-# views.py
-
-from django.shortcuts import render
 
 def dashboard_view(request):
     return render(request, 'dashboard.html')
@@ -205,35 +187,42 @@ def feedstock_report(request):
         'selected_info': selected_info
     })
 
-from django.shortcuts import render, redirect
-from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm
 
 def cost_entry_view(request):
     feed_form = FeedstockCostForm(prefix='feed')
     power_form = PowerCostForm(prefix='power')
     cbg_form = CBGSaleDispatchForm(prefix='cbg')
+    fom_form = FOMSaleDispatchForm(prefix='fom')
 
     if request.method == 'POST':
         if 'feedstock_submit' in request.POST:
             feed_form = FeedstockCostForm(request.POST, prefix='feed')
             if feed_form.is_valid():
                 feed_form.save()
-                return redirect('success_page')  # or same page to continue adding
+                success(request, message="Form Submitted successfully!")
+                return redirect('manual_entry')
 
         elif 'power_submit' in request.POST:
             power_form = PowerCostForm(request.POST, prefix='power')
             if power_form.is_valid():
                 power_form.save()
-                return redirect('success_page')
+                return redirect('manual_entry')
 
         elif 'cbg_submit' in request.POST:
             cbg_form = CBGSaleDispatchForm(request.POST, prefix='cbg')
             if cbg_form.is_valid():
                 cbg_form.save()
-                return redirect('success_page')
+                return redirect('manual_entry')
+        
+        elif 'fom_submit' in request.POST:
+            fom_form = FOMSaleDispatchForm(request.POST, prefix='fom')
+            if fom_form.is_valid():
+                fom_form.save()
+                return redirect('manual_entry')
 
     return render(request, 'manual_entry.html', {
         'feed_form': feed_form,
         'power_form': power_form,
         'cbg_form': cbg_form,
+        'fom_form': fom_form
     })

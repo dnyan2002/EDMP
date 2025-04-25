@@ -190,7 +190,6 @@ class PIDData(models.Model):
         db_table = 'pid_data'
 
 
-
 class BiogasPlantReport(models.Model):
     date = models.DateField(auto_now=True)  
 
@@ -224,30 +223,22 @@ class BiogasPlantReport(models.Model):
     running_time = models.DurationField()
     stoppage_time = models.DurationField()
 
-    
-
     def __str__(self):
         return f"Report - {self.date}"
-
-
+    
+    class Meta:
+        verbose_name = 'Biogas Plant Report'
+        verbose_name_plural = 'Biogas Plant Report'
 
 
 class FeedstockCost(models.Model):
-    cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Cost (Rs)")
     cost_per_ton = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cost per Ton of Feed (Rs)")
     date_recorded = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.get_entry_type_display()} - Rs {self.cost} (Rs {self.cost_per_ton}/ton)"
-
 
 class PowerCost(models.Model):
-    cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Power Cost (Rs)")
     cost_per_unit = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cost per Unit of Power (Rs)")
     date_recorded = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.get_entry_type_display()} - Rs {self.cost} (Rs {self.cost_per_unit}/unit)"
 
 
 class CBGSaleDispatch(models.Model):
@@ -255,9 +246,8 @@ class CBGSaleDispatch(models.Model):
     unit = models.CharField(max_length=10, default='Ton')
     date_recorded = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.get_entry_type_display()} - {self.dispatch_quantity} {self.unit}"
 
-
-
-
+class FOMSaleDispatch(models.Model):
+    dispatch_quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Dispatch Quantity (Ton)")
+    unit = models.CharField(max_length=10, default='Ton')
+    date_recorded = models.DateTimeField(auto_now_add=True)
