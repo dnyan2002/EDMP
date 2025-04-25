@@ -167,44 +167,128 @@ from django.shortcuts import render
 
 def dashboard_view(request):
     return render(request, 'dashboard.html')
-
 def feedstock_report(request):
+    # Get filter parameters
     date = request.GET.get('date')
     month = request.GET.get('month')
     year = request.GET.get('year')
-
-    selected_info = ""
+    shift = request.GET.get('shift')
+    
+    # Initialize variables
+    report_data = []
     feedstock_data = []
-    months_full = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    months = []
-
-    if year and not date and not month:
-        selected_info = f"Selected Year: {year}"
-        months = months_full
-        for _ in range(12):
-            feedstock_data.append(random.randint(1000, 5000))  # Random feedstock values for each month
-
+    feedstock_cost_data = []
+    biogas_data = []
+    co2_data = []
+    labels = []
+    selected_info = ""
+    
+    # Initialize query
+    query = BiogasPlantReport.objects.all()
+    
+    # Apply filters
+    if date:
+        # Filter by specific date
+        selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+        query = query.filter(date=selected_date)
+        labels = [selected_date.strftime('%d %b %Y')]
+        selected_info = f"Selected Date: {selected_date.strftime('%d %b %Y')}"
     elif month and year:
-        selected_index = int(month) - 1
-        months = [months_full[selected_index]]
-        selected_info = f"Selected Month: {months[0]} {year}"
-        feedstock_data = [random.randint(200, 800)]  # Random feedstock value for the month
-
+        # Filter by month and year
+        query = query.filter(date__year=year, date__month=month)
+        month_name = datetime(int(year), int(month), 1).strftime('%B')
+        labels = [month_name]
+        selected_info = f"Selected Month: {month_name} {year}"
+    elif year:
+        # Filter by year
+        query = query.filter(date__year=year)
+        # Group by month for year view
+        months_data = {}
+        for i in range(1, 13):
+            months_data[i] = {'feedstock': 0, 'cost': 0, 'biogas': 0, 'co2': 0, 'count': 0}
+        
+        for report in query:
+            month_num = report.date.month
+            months_data[month_num]['feedstock'] += report.feedstock_used_ton
+            months_data[month_num]['cost'] += report.total_feed_cost
+            months_data[month_num]['biogas'] += report.raw_biogas_produced_nm3
+            months_data[month_num]['co2'] += report.co2_savings_mt
+            months_data[month_num]['count'] += 1
+        
+        # Create arrays for chart data
+        months_full = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        labels = months_full
+        
+        for i in range(1, 13):
+            if months_data[i]['count'] > 0:
+                # Calculate averages if there are multiple entries per month
+                feedstock_data.append(months_data[i]['feedstock'] / months_data[i]['count'])
+                feedstock_cost_data.append(months_data[i]['cost'] / months_data[i]['count'])
+                biogas_data.append(months_data[i]['biogas'] / months_data[i]['count'])
+                co2_data.append(months_data[i]['co2'] / months_data[i]['count'])
+            else:
+                feedstock_data.append(0)
+                feedstock_cost_data.append(0)
+                biogas_data.append(0)
+                co2_data.append(0)
+        
+        selected_info = f"Selected Year: {year}"
     else:
-        months = ['']
-        selected_info = f"Selected Date: {date}" if date else "Default Day View"
-        feedstock_data = [random.randint(50, 200)]  # Random feedstock value for a day
-
-    years = range(2020, datetime.now().year + 1)
-
+        # Default to current day if no filters selected
+        today = datetime.now().date()
+        query = query.filter(date=today)
+        labels = [today.strftime('%d %b %Y')]
+        selected_info = "Today's Report"
+    
+    # Apply shift filter if provided
+    if shift:
+        query = query.filter(shift=shift)
+    
+    # If we haven't populated data arrays yet (for date or month+year filters)
+    if not feedstock_data:
+        for report in query:
+            report_data.append({
+                'highest_value': report.raw_biogas_produced_nm3,
+                'filter_no': report.power_consumption_kwh,
+                'shift': report.shift,
+                'date': report.date.strftime('%Y-%m-%d')
+            })
+            
+            feedstock_data.append(report.feedstock_used_ton)
+            feedstock_cost_data.append(report.total_feed_cost)
+            biogas_data.append(report.raw_biogas_produced_nm3)
+            co2_data.append(report.co2_savings_mt)
+    
+    # Get years for dropdown
+    years = BiogasPlantReport.objects.dates('date', 'year').values_list('date__year', flat=True).distinct()
+    years = sorted(years)
+    
+    # Get shifts for dropdown
+    shifts = BiogasPlantReport.objects.values('shift').distinct()
+    
+    # Prepare chart data
+    chart_data = {
+        'feedstock': {
+            'labels': labels,
+            'feedstock_used': feedstock_data,
+            'feedstock_cost': feedstock_cost_data
+        },
+        'biogas': {
+            'labels': labels,
+            'biogas_produced': biogas_data,
+            'co2_savings': co2_data
+        }
+    }
+    
     return render(request, 'feedstock_report.html', {
-        'feedstock_data_list': feedstock_data,
-        'months': months,
+        'report_data': report_data,
+        'chart_data': chart_data,
         'years': years,
-        'selected_info': selected_info
+        'shifts': shifts,
+        'selected_info': selected_info,
+        'selected_shift': shift
     })
-
 from django.shortcuts import render, redirect
 from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm
 
@@ -218,7 +302,7 @@ def cost_entry_view(request):
             feed_form = FeedstockCostForm(request.POST, prefix='feed')
             if feed_form.is_valid():
                 feed_form.save()
-                return redirect('success_page')  # or same page to continue adding
+                return redirect('success_page')  
 
         elif 'power_submit' in request.POST:
             power_form = PowerCostForm(request.POST, prefix='power')
@@ -237,3 +321,71 @@ def cost_entry_view(request):
         'power_form': power_form,
         'cbg_form': cbg_form,
     })
+
+def report_list(request):
+    # Start with all reports
+    reports_query = BiogasPlantReport.objects.all()
+    
+    # Filter by date if provided
+    date_filter = request.GET.get('date')
+    if date_filter:
+        reports_query = reports_query.filter(date=date_filter)
+    
+    # Filter by month and year if provided
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    if month and year:
+        reports_query = reports_query.filter(date__month=month, date__year=year)
+    
+    # Filter by shift if provided
+    shift = request.GET.get('shift')
+    if shift:
+        # Assuming you have a shift field in your model or a related model
+        # Modify this based on your actual model structure
+        reports_query = reports_query.filter(shift=shift)
+    
+    # Order by date descending
+    reports = reports_query.order_by('-date')
+    
+    # Default values for charts
+    expected_clean_gas_percentage = 0
+    actual_production_percentage = 0
+    
+    # Calculate data for charts based on filtered reports
+    if reports.exists():
+        # Calculate totals for all filtered reports
+        total_expected_clean_gas = sum(report.expected_clean_gas_nm3 for report in reports)
+        total_actual_clean_gas = sum(report.actual_clean_gas_nm3 for report in reports)
+        
+        total_expected_production = sum(report.expected_production_kg for report in reports)
+        total_actual_production = sum(report.actual_cbg_production_kg for report in reports)
+        
+        # Calculate percentages
+        if total_expected_clean_gas > 0:
+            expected_clean_gas_percentage = (total_actual_clean_gas / total_expected_clean_gas) * 100
+            expected_clean_gas_percentage = round(expected_clean_gas_percentage, 2)
+        
+        if total_expected_production > 0:
+            actual_production_percentage = (total_actual_production / total_expected_production) * 100
+            actual_production_percentage = round(actual_production_percentage, 2)
+    
+    # Get unique years for the year dropdown
+    years = BiogasPlantReport.objects.dates('date', 'year')
+    years = [date.year for date in years]
+    
+    # Define shifts (you might have a Shift model, but this is a simple example)
+    shifts = [
+        {'shift_name': 'General Shift'},
+        {'shift_name': 'Night Shift'}
+    ]
+    
+    context = {
+        'reports': reports,
+        'expected_clean_gas': expected_clean_gas_percentage,
+        'actual_production': actual_production_percentage,
+        'years': years,
+        'shifts': shifts,
+        'selected_shift': shift or ''
+    }
+    
+    return render(request, 'report.html', context)

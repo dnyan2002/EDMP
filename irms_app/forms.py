@@ -68,15 +68,36 @@ class PIDDataForm(forms.ModelForm):
 
 
 
+# class BiogasPlantReportForm(forms.ModelForm):
+#     class Meta:
+#         model = BiogasPlantReport
+#         fields = '__all__'
+#         widgets = {
+#             'date': forms.DateInput(attrs={'type': 'date'}),
+#             'running_time': forms.TimeInput(attrs={'type': 'time'}),
+#             'stoppage_time': forms.TimeInput(attrs={'type': 'time'}),
+#         }
+
+
 class BiogasPlantReportForm(forms.ModelForm):
     class Meta:
         model = BiogasPlantReport
-        fields = '__all__'
-        widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'running_time': forms.TimeInput(attrs={'type': 'time'}),
-            'stoppage_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
+        fields = [
+            'feedstock_used_ton',
+            'feedstock_cost_per_ton',
+            'raw_biogas_produced_nm3',
+            'methane_content_percent',
+            'actual_clean_gas_nm3',
+            'actual_cbg_production_kg',
+            'gas_purity_percent',
+            'power_consumption_kwh',
+            'power_cost_per_unit',
+            'co2_savings_mt',
+            'fom_bag_count',
+            'cbg_sale_dispatch_ton',
+            'running_time',
+            'stoppage_time',
+        ]
 
 
 
