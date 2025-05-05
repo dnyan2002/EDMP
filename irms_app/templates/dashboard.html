@@ -1,108 +1,105 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 {% block styles %}
-    <style> 
-    .status-card {
-        height: 100%;
-    }
-    .status-text {
-        font-size: 0.875rem;
-        opacity: 0.9;
-    }
-    .status-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-top: 0.5rem;
-    }
-    .status-subtext {
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        opacity: 0.9;
-    }
-        
-    .status-card-primary {
-        border-left-color: var(--primary-color);
-    }
-    
-    .status-card-success {
-        border-left-color: var(--success-color);
-    }
-    
-    .status-card-info {
-        border-left-color: var(--info-color);
-    }
-    
-    .status-card-warning {
-        border-left-color: var(--warning-color);
-    }
-    
-    .status-card .card-body {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.25rem;
-    }
-    
-    .status-card .status-icon {
-        font-size: 2rem;
-        opacity: 0.3;
-    }
-    
-    .status-card-primary .status-text {
-        color: var(--primary-color);
-    }
-    
-    .status-card-success .status-text {
-        color: var(--success-color);
-    }
-    
-    .status-card-info .status-text {
-        color: var(--info-color);
-    }
-    
-    .status-card-warning .status-text {
-        color: var(--warning-color);
-    }
-    
-    /* New styles for chart legends with values */
-    .chart-legend {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 15px;
-    }
-    
-    .legend-item {
-        display: flex;
-        align-items: center;
-        margin: 5px 10px;
-    }
-    
-    .legend-color {
-        width: 15px;
-        height: 15px;
-        margin-right: 8px;
-        border-radius: 3px;
-    }
-    
-    .legend-label {
-        font-size: 12px;
-        margin-right: 5px;
-    }
-    
-    .legend-value {
-        font-size: 12px;
-        font-weight: bold;
-    }
-    .bg-light-aqua {
-    background-color: #d0f0fd;
-    color: #0277bd;
-}
-
-
-
+    <style>
+      .status-card {
+         height: 100%;
+     }
+     .status-text {
+         font-size: 0.875rem;
+         opacity: 0.9;
+     }
+     .status-value {
+         font-size: 1.5rem;
+         font-weight: bold;
+         margin-top: 0.5rem;
+     }
+     .status-subtext {
+         font-size: 0.875rem;
+         margin-top: 0.5rem;
+         opacity: 0.9;
+     }
+     
+     .status-card-primary {
+         border-left-color: var(--primary-color);
+     }
+     
+     .status-card-success {
+         border-left-color: var(--success-color);
+     }
+     
+     .status-card-info {
+         border-left-color: var(--info-color);
+     }
+     
+     .status-card-warning {
+         border-left-color: var(--warning-color);
+     }
+     
+     .status-card .card-body {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         padding: 1.25rem;
+     }
+     
+     .status-card .status-icon {
+         font-size: 2rem;
+         opacity: 0.3;
+     }
+     
+     .status-card-primary .status-text {
+         color: var(--primary-color);
+     }
+     
+     .status-card-success .status-text {
+         color: var(--success-color);
+     }
+     
+     .status-card-info .status-text {
+         color: var(--info-color);
+     }
+     
+     .status-card-warning .status-text {
+         color: var(--warning-color);
+     }
+     
+     /* New styles for chart legends with values */
+     .chart-legend {
+         display: flex;
+         flex-wrap: wrap;
+         justify-content: center;
+         margin-top: 15px;
+     }
+     
+     .legend-item {
+         display: flex;
+         align-items: center;
+         margin: 5px 10px;
+     }
+     
+     .legend-color {
+         width: 15px;
+         height: 15px;
+         margin-right: 8px;
+         border-radius: 3px;
+     }
+     
+     .legend-label {
+         font-size: 12px;
+         margin-right: 5px;
+     }
+     
+     .legend-value {
+         font-size: 12px;
+         font-weight: bold;
+     }
+     .bg-light-aqua {
+     background-color: #d0f0fd;
+     color: #0277bd; }
     </style>
 {% endblock %}
+
 {% block content %}
 <!-- Status Cards Row -->
 <div class="row">
@@ -114,8 +111,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Actual Clean Gas Production</div>
-                            <div class="status-value">842.1 nm³</div>
-                            <div class="status-subtext">Hourly Expected Clean Gas Production: 856.4 nm³</div>
+                            <div class="status-value">{{ actual_clean_gas|floatformat:1 }} nm³</div>
+                            <div class="status-subtext">Hourly Expected Clean Gas Production: {{ expected_clean_gas|floatformat:1 }} nm³</div>
                         </div>
                     </div>
                 </div>
@@ -126,8 +123,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Actual CBG Production</div>
-                            <div class="status-value">34.2 T</div>
-                            <div class="status-subtext">Hourly Expected CBG Production: 35.2 T</div>
+                            <div class="status-value">{{ actual_cbg_production|floatformat:1 }} T</div>
+                            <div class="status-subtext">Hourly Expected CBG Production: {{ expected_production|floatformat:1 }} T</div>
                         </div>
                     </div>
                 </div>
@@ -138,8 +135,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Feedstock Used</div>
-                            <div class="status-value">125 T</div>
-                            <div class="status-subtext">Feedstock Cost: ₹75000</div>
+                            <div class="status-value">{{ hourly_feedstock|floatformat:0 }} T</div>
+                            <div class="status-subtext">Feedstock Cost: ₹{{ feedstock_cost|floatformat:0 }}</div>
                         </div>
                     </div>
                 </div>
@@ -150,8 +147,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Raw BioGas Produced</div>
-                            <div class="status-value">12500 nm³</div>
-                            <div class="status-subtext">Hourly CO₂ Savings: 62.5 Mt</div>
+                            <div class="status-value">{{ hourly_raw_biogas|floatformat:0 }} nm³</div>
+                            <div class="status-subtext">Hourly CO₂ Savings: {{ hourly_co2_savings|floatformat:1 }} Mt</div>
                         </div>
                     </div>
                 </div>
@@ -165,8 +162,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Power Consumption</div>
-                            <div class="status-value">650 kW</div>
-                            <div class="status-subtext">Power Cost: ₹62400</div>
+                            <div class="status-value">{{ power_consumption|floatformat:0 }} kW</div>
+                            <div class="status-subtext">Power Cost: ₹{{ power_cost|floatformat:0 }}</div>
                         </div>
                     </div>
                 </div>
@@ -177,7 +174,7 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly FOM Bags Generated</div>
-                            <div class="status-value">200</div>
+                            <div class="status-value">{{ fom_bags }}</div>
                             <!-- <div class="status-subtext">Last Replacement: 42 days ago</div> -->
                         </div>
                     </div>
@@ -189,8 +186,8 @@
                     <div class="card-body">
                         <div>
                             <div class="status-text">Running Hours</div>
-                            <div class="status-value">20</div>
-                            <div class="status-subtext">Stoppage Hours: 4</div>
+                            <div class="status-value">{{ running_hours | floatformat:2}}</div>
+                            <div class="status-subtext">Stoppage Hours: {{ stoppage_hours | floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -235,27 +232,27 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 
-<!-- Process Distribution Pie Chart -->
-<div class="col-xl-4 col-lg-5">
-    <div class="card card-dashboard shadow mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="card-body">
-            <div style="position: relative; height: 300px;">
-                <canvas id="biogasChart"></canvas>
+    <!-- Process Distribution Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card card-dashboard shadow mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6>Biogas Production & CO₂ Savings</h6>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px;">
+                    <canvas id="biogasChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
-
 <!-- Content Row -->
 <div class="row">
 </div>
 {% endblock %}
-
 {% block scripts %}
 <!-- Make sure Chart.js is loaded only once and from the correct path -->
 <script>
@@ -298,20 +295,11 @@
                 }
             }
             
-            
-            {% if expected_clean_gas %}
-                expectedCleanGas = {{ expected_clean_gas }};
-            {% endif %}
-            
-            {% if actual_production %}
-                actualProduction = {{ actual_production }};
-            {% endif %}
-            
             // Expected Clean Gas Chart
             var ctx1 = document.getElementById('expectedCleanGasChart');
             if (ctx1) {
                 var cleanGasColors = ['#88EA16', '#1badd9'];
-                var cleanGasData = [856.4, 842.1];
+                var cleanGasData = [{{ expected_clean_gas|floatformat:1 }}, {{ actual_clean_gas|floatformat:1 }}];
                 var cleanGasLabels = ['Expected Clean Gas (m³/hr)', 'Actual Production (m³/hr)'];
                 
                 var expectedCleanGasChart = new Chart(ctx1, {
@@ -342,7 +330,7 @@
             var ctx2 = document.getElementById('actualProductionChart');
             if (ctx2) {
                 var productionColors = ['#88EA16', '#1badd9'];
-                var productionData = [35.2, 34.2];
+                var productionData = [{{ expected_production|floatformat:1 }}, {{ actual_cbg_production|floatformat:1 }}];
                 var productionLabels = ['Expected Production (T/hr)', 'Actual CBG Production (T/hr)'];
                 
                 var actualProductionChart = new Chart(ctx2, {
@@ -369,33 +357,41 @@
                 createCustomLegend('actualProductionLegend', productionData, productionLabels, productionColors);
             }
 
-            // Line Chart: Biogas and CO2
+            // Line Chart: Biogas and CO2 - Using data from server
             var ctx3 = document.getElementById('biogasChart');
             if (ctx3) {
-                const biogasData = {
-                    labels: ['1:00', '1:10', '1:20', '1:30', '1:40', '1:50'],
+                // Get data from Django context
+                const timeLabels = {{ time_labels|safe }};
+                const biogasData = {{ biogas_chart_data|safe }};
+                const co2Data = {{ co2_chart_data|safe }};
+                
+                const biogasChartData = {
+                    labels: timeLabels,
                     datasets: [
                         {
                             label: 'Biogas Produced (nm³)',
-                            data: [2050, 2100, 2085, 2120, 2070, 2075],  // approx values adding to ~12500
+                            data: biogasData,
                             borderColor: '#42a5f5',
+                            backgroundColor: 'rgba(66, 165, 245, 0.1)',
                             yAxisID: 'y1',
                             tension: 0.4,
-                            fill: false
+                            fill: true
                         },
                         {
                             label: 'CO₂ Savings (Mt)',
-                            data: [10.2, 10.5, 10.3, 10.6, 10.4, 10.5],  // approx values adding to ~62.5
+                            data: co2Data,
                             borderColor: '#66bb6a',
+                            backgroundColor: 'rgba(102, 187, 106, 0.1)',
                             yAxisID: 'y2',
                             tension: 0.4,
-                            fill: false
+                            fill: true
                         }
                     ]
                 };
-                new Chart(ctx3, {
+                
+                const biogasChart = new Chart(ctx3, {
                     type: 'line',
-                    data: biogasData,
+                    data: biogasChartData,
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -440,16 +436,66 @@
                         }
                     }
                 });
+                
+                // Set up automatic refresh every 5 minutes to get new data from server
+                function refreshData() {
+                    fetch(window.location.href)
+                        .then(response => response.text())
+                        .then(html => {
+                            // Create a temporary DOM element to parse the HTML response
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            
+                            // Find the script tag containing the data
+                            const scripts = doc.querySelectorAll('script');
+                            let newDataScript = '';
+                            
+                            scripts.forEach(script => {
+                                if (script.textContent.includes('biogas_chart_data') && 
+                                    script.textContent.includes('co2_chart_data') && 
+                                    script.textContent.includes('time_labels')) {
+                                    newDataScript = script.textContent;
+                                }
+                            });
+                            
+                            if (newDataScript) {
+                                // Extract new data using regex
+                                const timeLabelsMatch = newDataScript.match(/time_labels\s*=\s*(\[.+?\])/s);
+                                const biogasDataMatch = newDataScript.match(/biogas_chart_data\s*=\s*(\[.+?\])/s);
+                                const co2DataMatch = newDataScript.match(/co2_chart_data\s*=\s*(\[.+?\])/s);
+                                
+                                if (timeLabelsMatch && biogasDataMatch && co2DataMatch) {
+                                    try {
+                                        const newTimeLabels = JSON.parse(timeLabelsMatch[1]);
+                                        const newBiogasData = JSON.parse(biogasDataMatch[1]);
+                                        const newCo2Data = JSON.parse(co2DataMatch[1]);
+                                        
+                                        // Update chart data
+                                        biogasChart.data.labels = newTimeLabels;
+                                        biogasChart.data.datasets[0].data = newBiogasData;
+                                        biogasChart.data.datasets[1].data = newCo2Data;
+                                        biogasChart.update();
+                                        
+                                        console.log("Chart data refreshed successfully");
+                                    } catch (e) {
+                                        console.error("Error parsing new data:", e);
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error refreshing data:", error);
+                        });
+                }
+                
+                // Refresh data every 5 minutes (300000 ms)
+                setInterval(refreshData, 300000);
             }
             
-
-
             console.log("Charts created successfully!");
         } catch (error) {
             console.error("Error creating charts:", error);
         }
     });
 </script>
-
-
 {% endblock %}

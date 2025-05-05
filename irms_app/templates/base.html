@@ -376,13 +376,16 @@
                 </a>
                 <div class="sidebar-submenu">
                     <a href="{% url 'report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 1
+                        <i class="fas fa-file-alt"></i> Biogas Produced
                     </a>
                     <a href="{% url 'feedstock_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 2
+                        <i class="fas fa-file-alt"></i> Feedstock Report
                     </a>
                     <a href="{% url 'powerconsumption_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'powerconsumption_report' %}active{% endif %}">
-                        <i class="fas fa-file-alt"></i> Report 3
+                        <i class="fas fa-file-alt"></i> Power Consumption Report
+                    </a>
+                    <a href="{% url 'running_hours' %}" class="sidebar-link {% if request.resolver_match.url_name == 'running_hours' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Running Hours Report
                     </a>
                 </div>
             </div>
@@ -440,19 +443,6 @@
                     <img class="img-profile rounded-circle" src="{% static 'images/echodhara.png' %}" width="32" height="32" alt="User Avatar">
                 </a>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>
-                        Settings
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>
-                        Activity Log
-                    </a>
-                    <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="{% url 'logout' %}">
                         <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>
                         Logout

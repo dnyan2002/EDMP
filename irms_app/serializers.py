@@ -6,3 +6,9 @@ class PIDDataSerializer(serializers.ModelSerializer):
         model = PIDData
         fields = "__all__"
         read_only_fields = ('created_at',)
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BiogasPlantReport
+        fields = "__all__"
+        read_only_fields = ('date', )

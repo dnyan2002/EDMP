@@ -345,16 +345,6 @@
                 {% endfor %} 
             </select> 
         </div>
-         
-         <!-- Shift Selection -->
-        <div class="form-group" id="shift-group"> 
-            <label for="shift">Shift</label> 
-            <select id="shift" name="shift" class="form-control"> 
-                <option value="">Select Shift</option>
-                <option value="General Shift" {% if selected_shift == "General Shift" %}selected{% endif %}>General Shift</option>
-                <option value="Night Shift" {% if selected_shift == "Night Shift" %}selected{% endif %}>Night Shift</option>
-            </select> 
-        </div>
 
         <div class="button-group">
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
@@ -370,7 +360,7 @@
     <div class="report-container">
         <div class="left-section">
             <!-- First Chart: Feedstock Used vs Feedstock Cost -->
-            <h3>Expected Clean Gas & Actual Production</h3>
+            <h3>Expected Clean Gas & Actual Clean Gas</h3>
             <canvas id="expectedCleanGasChart" class="pie-chart" width="400" height="200"></canvas>
         </div>
         <div class="left-section">
@@ -387,50 +377,20 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Feedstock Used (ton)</th>
-                    <th>Total Feed Cost</th>
-                    <th>Raw Biogas Produced (Nm³)</th>
                     <th>Expected Clean Gas (Nm³)</th>
                     <th>Actual Clean Gas (Nm³)</th>
-                    <th>Purification Loss (Nm³)</th>
-                    <th>Purification Loss (%)</th>
                     <th>Expected CBG (kg)</th>
                     <th>Actual CBG (kg)</th>
-                    <th>Methane Loss (kg)</th>
-                    <th>Methane Loss (%)</th>
-                    <th>Gas Purity (%)</th>
-                    <th>Power Consumed (kWh)</th>
-                    <th>Total Power Cost</th>
-                    <th>CO₂ Savings (MT)</th>
-                    <th>FoM Bags</th>
-                    <th>CBG Sale Dispatch (ton)</th>
-                    <th>Running Time</th>
-                    <th>Stoppage Time</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in reports %}
                 <tr>
                     <td>{{ r.date }}</td>
-                    <td>{{ r.feedstock_used_ton }}</td>
-                    <td>{{ r.total_feed_cost }}</td>
-                    <td>{{ r.raw_biogas_produced_nm3 }}</td>
                     <td>{{ r.expected_clean_gas_nm3 }}</td>
                     <td>{{ r.actual_clean_gas_nm3 }}</td>
-                    <td>{{ r.purification_loss_nm3 }}</td>
-                    <td>{{ r.purification_loss_percent|floatformat:2 }}</td>
                     <td>{{ r.expected_production_kg }}</td>
                     <td>{{ r.actual_cbg_production_kg }}</td>
-                    <td>{{ r.methane_loss_kg }}</td>
-                    <td>{{ r.methane_loss_percent|floatformat:2 }}</td>
-                    <td>{{ r.gas_purity_percent }}</td>
-                    <td>{{ r.power_consumption_kwh }}</td>
-                    <td>{{ r.total_power_cost }}</td>
-                    <td>{{ r.co2_savings_mt }}</td>
-                    <td>{{ r.fom_bag_count }}</td>
-                    <td>{{ r.cbg_sale_dispatch_ton }}</td>
-                    <td>{{ r.running_time }}</td>
-                    <td>{{ r.stoppage_time }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -441,6 +401,9 @@
 
 <!-- jQuery script -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -650,95 +613,96 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Register the plugin globally
-    Chart.register(ChartDataLabels);
-
-    var expectedCleanGas = {{ expected_clean_gas }};
-    var actualProduction = {{ actual_production }};
-    var remainingGas = Math.max(0, 100 - expectedCleanGas);
-    var remainingProduction = Math.max(0, 100 - actualProduction);
-
-    // Expected Clean Gas Pie Chart
-    var ctx1 = document.getElementById('expectedCleanGasChart').getContext('2d');
-    var expectedCleanGasChart = new Chart(ctx1, {
-        type: 'pie',
-        data: {
-            labels: ['Actual Clean Gas', 'Expected Clean Gas'],
-            datasets: [{
-                data: [expectedCleanGas, remainingGas],
-                backgroundColor: ['#88EA16', '#1badd9']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait for window to fully load, which means all assets including CSS are applied
+        window.addEventListener('load', function() {
+            // Delay chart creation slightly to ensure DOM is fully ready
+            setTimeout(initCharts, 300);
+        });
+    
+        function initCharts() {
+            // Get the data from Django context
+            var expectedCleanGas = {{ expected_clean_gas }};
+            var actualProduction = {{ actual_production }};
+            
+            // Add console logs to verify data
+            console.log("Expected Clean Gas:", expectedCleanGas);
+            console.log("Actual Clean Gas:", actualProduction);
+            
+            var remainingGas = Math.max(0, 100 - expectedCleanGas);
+            var remainingProduction = Math.max(0, 100 - actualProduction);
+            
+            // Get canvas elements
+            var canvas1 = document.getElementById('expectedCleanGasChart');
+            var canvas2 = document.getElementById('actualProductionChart');
+            
+            if (!canvas1 || !canvas2) {
+                console.error("Chart canvas elements not found");
+                return;
+            }
+            
+            // Create the first chart - Expected Clean Gas Chart
+            var ctx1 = canvas1.getContext('2d');
+            new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: ['Actual Clean Gas', 'Expected Clean Gas'],
+                    datasets: [{
+                        data: [expectedCleanGas, remainingGas],
+                        backgroundColor: ['#88EA16', '#1badd9']
+                    }]
                 },
-                datalabels: {
-                    color: '#000',
-                    anchor: 'end',
-                    align: 'end',
-                    formatter: function(value) {
-                        return value.toFixed(1) + '%';  
-                    },
-                    font: {
-                        weight: 'bold',
-                        size: 14
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(1) + '%';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(1) + '%';
+                                }
+                            }
                         }
                     }
                 }
-            }
-        },
-        plugins: [ChartDataLabels]
-    });
-
-    // Actual Production Pie Chart
-    var ctx2 = document.getElementById('actualProductionChart').getContext('2d');
-    var actualProductionChart = new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: ['Actual CBG Production', 'Expected Production'],
-            datasets: [{
-                data: [actualProduction, remainingProduction],
-                backgroundColor: ['#88EA16', '#1badd9']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
+            });
+            
+            // Create the second chart - Actual Production Chart
+            var ctx2 = canvas2.getContext('2d');
+            new Chart(ctx2, {
+                type: 'pie',
+                data: {
+                    labels: ['Actual CBG Production', 'Expected Production'],
+                    datasets: [{
+                        data: [actualProduction, remainingProduction],
+                        backgroundColor: ['#88EA16', '#1badd9']
+                    }]
                 },
-                datalabels: {
-                    color: '#000',
-                    anchor: 'end',
-                    align: 'end',
-                    formatter: function(value) {
-                        return value.toFixed(1) + '%';
-                    },
-                    font: {
-                        weight: 'bold',
-                        size: 14
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(1) + '%';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipI
+                                    item.label + ': ' + tooltipItem.raw.toFixed(1) + '%';
+                                }
+                            }
                         }
                     }
                 }
-            }
-        },
-        plugins: [ChartDataLabels]
+            });
+            
+            console.log("Charts initialized successfully");
+        }
     });
-</script>
+    </script>
     
 {% endblock %}

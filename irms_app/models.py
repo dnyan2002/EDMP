@@ -72,8 +72,6 @@ class Parameter(models.Model):
         db_table = 'parameter'
 
 
-
-
 class Connection(models.Model):
     machine_name = models.CharField(max_length=45)
     ip_address = models.GenericIPAddressField()

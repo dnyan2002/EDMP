@@ -8,6 +8,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'pid-data', views.PIDDataViewSet)
+router.register(r'report',views.ReportViewset, basename='report')
 
 urlpatterns = [
     path('', views.user_login, name='login'),
@@ -28,7 +29,8 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     re_path(r'^media/(?P<path>.*)$',serve,{'document_root' : settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$',serve,{'document_root' : settings.STATIC_ROOT}),
-    path('dashboard/', views.dashboard_view, name='dashboard'),
+    # path('dashboard/', views.dashboard_view, name='dashboard'),
     path('manual-entry/', views.cost_entry_view, name='manual_entry'),
+    path('running_hours/', views.running_hours, name='running_hours')
     # path('biogas-reports/', views.biogas_report_list, name='biogas-report-list'),
 ]

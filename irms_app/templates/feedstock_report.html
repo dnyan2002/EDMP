@@ -396,47 +396,17 @@
                     <th>Feedstock Used (ton)</th>
                     <th>Total Feed Cost</th>
                     <th>Raw Biogas Produced (Nm³)</th>
-                    <th>Expected Clean Gas (Nm³)</th>
-                    <th>Actual Clean Gas (Nm³)</th>
-                    <th>Purification Loss (Nm³)</th>
-                    <th>Purification Loss (%)</th>
-                    <th>Expected CBG (kg)</th>
-                    <th>Actual CBG (kg)</th>
-                    <th>Methane Loss (kg)</th>
-                    <th>Methane Loss (%)</th>
-                    <th>Gas Purity (%)</th>
-                    <th>Power Consumed (kWh)</th>
-                    <th>Total Power Cost</th>
                     <th>CO₂ Savings (MT)</th>
-                    <th>FoM Bags</th>
-                    <th>CBG Sale Dispatch (ton)</th>
-                    <th>Running Time</th>
-                    <th>Stoppage Time</th>
                 </tr>
             </thead>
             <tbody>
-                {% for r in reports %}
+                {% for r in report_data %}
                 <tr>
                     <td>{{ r.date }}</td>
                     <td>{{ r.feedstock_used_ton }}</td>
                     <td>{{ r.total_feed_cost }}</td>
                     <td>{{ r.raw_biogas_produced_nm3 }}</td>
-                    <td>{{ r.expected_clean_gas_nm3 }}</td>
-                    <td>{{ r.actual_clean_gas_nm3 }}</td>
-                    <td>{{ r.purification_loss_nm3 }}</td>
-                    <td>{{ r.purification_loss_percent|floatformat:2 }}</td>
-                    <td>{{ r.expected_production_kg }}</td>
-                    <td>{{ r.actual_cbg_production_kg }}</td>
-                    <td>{{ r.methane_loss_kg }}</td>
-                    <td>{{ r.methane_loss_percent|floatformat:2 }}</td>
-                    <td>{{ r.gas_purity_percent }}</td>
-                    <td>{{ r.power_consumption_kwh }}</td>
-                    <td>{{ r.total_power_cost }}</td>
                     <td>{{ r.co2_savings_mt }}</td>
-                    <td>{{ r.fom_bag_count }}</td>
-                    <td>{{ r.cbg_sale_dispatch_ton }}</td>
-                    <td>{{ r.running_time }}</td>
-                    <td>{{ r.stoppage_time }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

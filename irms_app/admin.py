@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     Role, CustomUser, Section, Equipment, Parameter, Plant,
-    Connection, FieldLink, LocalData, PIDData
+    Connection, FieldLink, LocalData, PIDData, BiogasPlantReport
 )
 
 @admin.register(CustomUser)
@@ -35,3 +35,4 @@ admin.site.register(Connection)
 admin.site.register(FieldLink)
 admin.site.register(LocalData)
 admin.site.register(PIDData)
+admin.site.register(BiogasPlantReport)

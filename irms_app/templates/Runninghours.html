@@ -179,6 +179,18 @@
             padding: 10px;
         }
     }
+    #graphcontainer {
+            width: 400px;
+            margin: auto;
+            text-align: center;
+        }
+        canvas {
+            margin-bottom: 20px;
+        }
+        .summary {
+            font-size: 16px;
+            font-weight: bold;
+        }
 </style>
 
 <div class="container">
@@ -241,14 +253,13 @@
         </div>
     </form>
 
-    <div class="report-container">
-        <div class="left-section">
-            <h3>Power Consumption vs Power Cost</h3>
-            <canvas id="powerChart" width="400" height="200"></canvas>
-        </div>
-        <div class="left-section">
-            <h3>Bags Generated per Hour</h3>
-            <canvas id="hourlyChart" width="400" height="200"></canvas>
+    <div id="graphcontainer">
+        <h2>Machine Running vs Stoppage Hours</h2>
+        <canvas id="machineChart" height="200"></canvas>
+    
+        <div class="summary">
+            <p><span style="color:green;">Running Hours:</span> {{ running_hours }} hrs</p>
+            <p><span style="color:red;">Stoppage Hours:</span> {{ stoppage_hours }} hrs</p>
         </div>
     </div>
     
@@ -259,15 +270,8 @@
                 <tr>
                     <th>Date</th>
                     <th>Shift</th>
-                    <th>Feedstock Used (ton)</th>
-                    <th>Raw Biogas (nm³)</th>
-                    <th>Clean Gas (nm³)</th>
-                    <th>CBG Production (kg)</th>
-                    <th>Gas Purity (%)</th>
-                    <th>Power Consumption (kWh)</th>
-                    <th>Power Cost</th>
-                    <th>CO₂ Savings (MT)</th>
-                    <th>Bags Count</th>
+                    <th>Running Hours</th>
+                    <th>Stoppage Hours</th>
                 </tr>
             </thead>
             <tbody>
@@ -275,15 +279,8 @@
                     <tr>
                         <td>{{ report.date|date:"d/m/Y" }}</td>
                         <td>{{ report.shift }}</td>
-                        <td>{{ report.feedstock_used_ton }}</td>
-                        <td>{{ report.raw_biogas_produced_nm3 }}</td>
-                        <td>{{ report.actual_clean_gas_nm3 }}</td>
-                        <td>{{ report.actual_cbg_production_kg }}</td>
-                        <td>{{ report.gas_purity_percent }}%</td>
-                        <td>{{ report.power_consumption_kwh }}</td>
-                        <td>{{ report.total_power_cost }}</td>
-                        <td>{{ report.co2_savings_mt }}</td>
-                        <td>{{ report.fom_bag_count }}</td>
+                        <td>{{ report.running_hours }}</td>
+                        <td>{{ report.stoppage_hours }}</td>
                     </tr>
                 {% empty %}
                     <tr>
@@ -446,135 +443,52 @@
     }
 </script>
 
+<!-- Update the Chart.js script to use the dynamic data -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Create the Power Consumption vs Power Cost chart
-        const powerCtx = document.getElementById('powerChart').getContext('2d');
-        
-        // Parse the monthly data from Django view
-        const monthlyData = [
-            {% for data in monthly_data %}
+    const ctx = document.getElementById('machineChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Machine'],
+            datasets: [
                 {
-                    month: "{{ data.month }}",
-                    powerConsumption: {{ data.power_consumption|default:0 }},
-                    powerCost: {{ data.power_cost|default:0 }}
+                    label: 'Running Hours',
+                    data: [{{ running_hours }}],
+                    backgroundColor: 'green',
+                    stack: 'Stack 0',
                 },
-            {% endfor %}
-        ];
-        
-        // Transform data into Chart.js format
-        const months = monthlyData.map(data => data.month);
-        const powerConsumptionData = monthlyData.map(data => data.powerConsumption);
-        const powerCostData = monthlyData.map(data => data.powerCost);
-        
-        // Create the power chart
-        const powerChart = new Chart(powerCtx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: 'Power Consumption (kWh)',
-                    data: powerConsumptionData,
-                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 2,
-                    fill: false,
-                    yAxisID: 'y1'
-                }, {
-                    label: 'Power Cost',
-                    data: powerCostData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    fill: false,
-                    yAxisID: 'y2'
-                }]
-            },
-            options: {
-                responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                scales: {
-                    y1: {
-                        type: 'linear',
+                {
+                    label: 'Stoppage Hours',
+                    data: [{{ stoppage_hours }}],
+                    backgroundColor: 'red',
+                    stack: 'Stack 0',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: 24,
+                    title: {
                         display: true,
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Power Consumption (kWh)'
-                        },
-                        beginAtZero: true
-                    },
-                    y2: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Power Cost'
-                        },
-                        beginAtZero: true,
-                        grid: {
-                            drawOnChartArea: false
-                        }
+                        text: 'Total Hours (Stacked)'
                     }
                 }
-            }
-        });
-        
-        // Create the Bags Generated per Hour chart
-        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
-        
-        // Parse the hourly data from Django view
-        const hourlyData = [
-            {% for data in hourly_data %}
-                {
-                    hour: "{{ data.hour }}",
-                    bags: {{ data.bags|default:0 }}
-                },
-            {% endfor %}
-        ];
-        
-        // Transform data into Chart.js format
-        const hours = hourlyData.map(data => data.hour);
-        const bagsData = hourlyData.map(data => data.bags);
-        
-        // Create the hourly chart
-        const hourlyChart = new Chart(hourlyCtx, {
-            type: 'bar',
-            data: {
-                labels: hours,
-                datasets: [{
-                    label: 'Bags Generated',
-                    data: bagsData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Bags'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Hour of Day'
-                        }
-                    }
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                title: {
+                    display: false
                 }
             }
-        });
+        }
     });
 </script>
 {% endblock %}
-```
