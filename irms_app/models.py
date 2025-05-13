@@ -79,6 +79,7 @@ class Connection(models.Model):
     status = models.CharField(max_length=50, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True)
     plant_id = models.ForeignKey('Plant', on_delete=models.CASCADE)
+    time_interval = models.IntegerField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.ip_address
@@ -253,3 +254,13 @@ class FOMSaleDispatch(models.Model):
     dispatch_quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Dispatch Quantity (Ton)")
     unit = models.CharField(max_length=10, default='Ton')
     date_recorded = models.DateTimeField(auto_now_add=True)
+
+class DriverStatus(models.Model):
+    driver_name = models.CharField(max_length=20, null=True)
+    driver_status = models.CharField(max_length=2, null=True)
+    time_stamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Driver Status'
+        verbose_name_plural = 'Driver Status'
+        db_table = 'driverstatus'
