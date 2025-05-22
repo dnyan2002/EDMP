@@ -17,8 +17,8 @@
                 <div class="c x0 y1 w2 h0">
                     <div class="t m0 x29 he y3a ff1 fs4 fc1 sc0 ls4 wsb">{{data.gas_flowmeter1 | floatformat:2}}</div>
                     <div class="t m0 x2a he y3b ff1 fs4 fc1 sc0 ls4 ws9">{{data.gas_flowmeter2 | floatformat:2}}</div>
-                    <div class="t m0 x2b he y3c ff1 fs4 fc1 sc0 ls4 wsb">{{data.mass_flowmeter | floatformat:2}},</div>
-                    <div class="t m0 x3b he y5a ff1 fs4 fc1 sc0 ls4 wsb">45.30</div>
+                    <div class="t m0 x2b he y3c ff1 fs4 fc1 sc0 ls4 wsb">{{data.mass_flow_meter_gas_flow_rate | floatformat:2}},</div>
+                    <div class="t m0 x3b he y5a ff1 fs4 fc1 sc0 ls4 wsb">{{data.mass_flow_meter_gas_flow_total | floatformat:2}}</div>
                     
                     <!-- <div class="t m0 x3a he y6a ff1 fs4 fc1 sc0 ls4 wsb">98.05</div>
                     <div class="t m0 x3a he y7a ff1 fs4 fc1 sc0 ls4 wsb">17.22</div>
@@ -64,4 +64,11 @@
         return context.measureText(element.textContent).width;
     }
 </script>
+<script>
+    setTimeout(function() {
+        window.location.reload();
+        console.log("Refreshed")
+    }, 10000); // 60000 ms = 1 minute
+</script>
+
 {% endblock %}
