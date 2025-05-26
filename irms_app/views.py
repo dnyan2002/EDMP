@@ -1,6 +1,6 @@
 import requests
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout 
 from django.urls import reverse
 from django.contrib.messages import success
@@ -16,13 +16,17 @@ from rest_framework.response import Response
 from .serializers import PIDDataSerializer, ReportSerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import logging
-from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm, FOMSaleDispatchForm, BiogasPlantReportForm
+from .forms import (
+        FeedstockCostForm, PowerCostForm, 
+        CBGSaleDispatchForm, FOMSaleDispatchForm, BiogasPlantReportForm,
+        CleanGasProductionForm, CBGProductionForm, SetPointForm
+    )
 import random
 from datetime import datetime
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-
+from django.db.models import Sum
 
 def user_login(request):
     if request.method == 'POST':
@@ -43,9 +47,30 @@ def logout_view(request):
 
 def home(request):
     latest_data = PIDData.objects.last()
+    from collections import defaultdict
+
+    crusher1_total = defaultdict(float)
+    for entry in PIDData.objects.all():
+        day = entry.created_at.date()  # Extract date in Python
+        crusher1_total[day] += entry.crusher1_naphier_tph
+    crusher1_total = [{"day": day, "total_crusher": total} for day, total in crusher1_total.items()]
     
+    crusher2_total = defaultdict(float)
+    for entry in PIDData.objects.all():
+        day = entry.created_at.date()  # Extract date in Python
+        crusher2_total[day] += entry.crusher2_naphier_tph
+    crusher2_total = [{"day": day, "total_crusher": total} for day, total in crusher2_total.items()]
+    
+    fom_bag_total = defaultdict(float)
+    for entry in PIDData.objects.all():
+        day = entry.created_at.date()  # Extract date in Python
+        fom_bag_total[day] += entry.bagging_unit
+    fom_bag_total = [{"day": day, "fom_bag_total": total} for day, total in fom_bag_total.items()]
     context = {
-        "data":latest_data
+        "data":latest_data,
+        "crusher1_total":crusher1_total,
+        "crusher2_total":crusher2_total,
+        "fom_bag_total":fom_bag_total
     }
     return render(request, 'home.html', context)
 
@@ -80,6 +105,20 @@ def create_user(request):
         'users': users
     })
 
+@login_required
+@role_required(['Admin', 'Manager'])
+def delete_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    if request.user == user:
+        messages.error(request, "You can't delete yourself.")
+        return redirect('create_user')
+
+    try:
+        user.delete()
+        # messages.success(request, f'User {user.username} deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting user: {str(e)}')
+    return redirect('create_user')
 
 logger = logging.getLogger(__name__)
 
@@ -217,91 +256,166 @@ def biogas_report_json(request):
             'actual_cbg_production_kg': report.actual_cbg_production_kg,
             'total_power_cost': report.total_power_cost,
             'cbg_sale_dispatch_ton': report.cbg_sale_dispatch_ton,
-            'running_time': str(report.running_time),
+            'report_time': str(report.report_time),
             'stoppage_time': str(report.stoppage_time),
         })
 
     return JsonResponse({'reports': data})
 
-
-# views.py
-from django.shortcuts import render
-from django.utils import timezone
-from django.db.models import F
-from datetime import timedelta
-import json
-from .models import BiogasPlantReport
-
 def dashboard(request):
-    # Get the current hour
-    now = timezone.now()
-    start_of_hour = now.replace(minute=0, second=0, microsecond=0)
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+    import json
     
-    # Try to get the current hour's report
-    current_report = BiogasPlantReport.objects.filter(
-        date=start_of_hour.date(),
-        running_time__gte=timedelta(hours=start_of_hour.hour),
-        running_time__lt=timedelta(hours=start_of_hour.hour+1)
-    ).first()
+    # Get the current time
+    now = timezone.localtime()
+    print("Now time", now)
+    today = now.date()
+    print("today", today)
     
-    # If no report exists for current hour, get the most recent one
-    if not current_report:
-        current_report = BiogasPlantReport.objects.order_by('-date', '-running_time').first()
+    # Option 1: Use shift-based approach
+    # Determine current shift based on time
+    current_hour = now.hour
+    if current_hour < 8:
+        current_shift = "Night Shift"
+        window_start = 0
+        window_name = "Night Shift (00:00 - 08:00)"
+    elif current_hour < 16:
+        current_shift = "General Shift"  # or "Day Shift"
+        window_start = 8
+        window_name = "Day Shift (08:00 - 16:00)"
+    else:
+        current_shift = "Evening Shift"
+        window_start = 16
+        window_name = "Evening Shift (16:00 - 24:00)"
     
-    # Get the last 6 reports for the chart data (up to 1 hour in 10-minute intervals)
-    recent_reports = BiogasPlantReport.objects.order_by('-date', '-running_time')[:6]
+    window_end = window_start + 8
     
-    # Format data for charts
+    # Create datetime boundaries for the current 8-hour window
+    window_start_time = timezone.make_aware(
+        datetime.combine(today, datetime.min.time()) + timedelta(hours=window_start)
+    )
+    print("Window start time", window_start_time)
+    window_end_time = timezone.make_aware(
+        datetime.combine(today, datetime.min.time()) + timedelta(hours=window_end)
+    )
+    print("Window end time", window_end_time)
+    # Method 1: Get reports by time window (recommended)
+    reports_in_window = BiogasPlantReport.objects.filter(
+        date=today,
+        report_time__gte=window_start_time,
+        report_time__lt=window_end_time
+    ).order_by('report_time')
+    print("Reports in Window", reports_in_window)
+    # Method 2: Alternative - Get reports by shift (if you prefer shift-based filtering)
+    reports_in_window = BiogasPlantReport.objects.filter(
+        date=today,
+        shift=current_shift
+    ).order_by('report_time')
+    
+    # Get the most recent report for status cards
+    current_report = BiogasPlantReport.objects.order_by('-date', '-report_time').first()
+    print("Current Report", current_report)
+    # Create hourly data structure
+    hourly_data = {}
+    
+    # Group reports by hour within the window
+    for report in reports_in_window:
+        if report.report_time:
+            report_hour = report.report_time.hour
+            print("report Hour", report_hour)
+            # If multiple reports exist for the same hour, keep the latest one
+            if report_hour not in hourly_data or report.report_time > hourly_data[report_hour].report_time:
+                hourly_data[report_hour] = report
+                print("actual report", report)
+    
+    # Prepare chart data arrays
+    time_labels = []
+    expected_clean_gas_data = []
+    actual_clean_gas_data = []
+    expected_production_data = []
+    actual_cbg_production_data = []
     biogas_data = []
     co2_data = []
-    time_labels = []
+    feedstock_data = []  # NEW: Add feedstock data array
     
-    # Reverse to get chronological order
-    for report in reversed(list(recent_reports)):
-        # Calculate the approximate biogas production for 10 minutes (1/6 of hourly)
-        biogas_value = round(report.raw_biogas_produced_nm3)
-        biogas_data.append(biogas_value)
+    # Get expected values for straight lines (from most recent report)
+    if current_report:
+        expected_clean_gas_value = float(current_report.expected_clean_gas_nm3)
+        expected_production_value = float(current_report.expected_production_kg)
+    else:
+        expected_clean_gas_value = 0
+        expected_production_value = 0
+    
+    # Generate data for each hour in the 8-hour window
+    for hour_offset in range(8):
+        hour = window_start + hour_offset
+        time_labels.append(f"{hour:02d}:00")
         
-        # Calculate CO2 savings for 10 minutes (1/6 of hourly)
-        co2_value = round(report.co2_savings_mt)
-        co2_data.append(co2_value)
-
-        total_seconds = report.running_time.total_seconds()
-        hours = int(total_seconds // 3600)
-        minutes = int((total_seconds % 3600) // 60)
-        time_labels.append(f"{hours}:{minutes:02d}")
-
-        # Calculate running hours and stoppage hours (as float)
+        # Expected values are constant (straight lines)
+        expected_clean_gas_data.append(expected_clean_gas_value)
+        expected_production_data.append(expected_production_value)
+        print(hour)
+        if hour in hourly_data:
+            print("Its a hour", hour)
+            # Data exists for this hour
+            report = hourly_data[hour]
+            print("Report", report)
+            actual_clean_gas_data.append(float(report.actual_clean_gas_nm3))
+            actual_cbg_production_data.append(float(report.actual_cbg_production_kg))
+            biogas_data.append(float(report.raw_biogas_produced_nm3))
+            co2_data.append(float(report.co2_savings_mt))
+            feedstock_data.append(float(report.feedstock_used_ton))  # NEW: Add feedstock data
+        else:
+            # No data for this hour - null values create gaps in line charts
+            actual_clean_gas_data.append(None)
+            actual_cbg_production_data.append(None)
+            biogas_data.append(None)
+            co2_data.append(None)
+            feedstock_data.append(None)  # NEW: Add null feedstock data
+    
+    # Build context data
     if current_report:
         running_hours = current_report.running_time.total_seconds() / 3600
         stoppage_hours = current_report.stoppage_time.total_seconds() / 3600
-
         
-        # Convert feedstock data to hourly
-        hourly_feedstock = current_report.feedstock_used_ton
-        hourly_feedstock_cost = current_report.total_feed_cost
-        
-        # Calculate hourly values
         context = {
+            # Status card data (current values)
             'expected_clean_gas': current_report.expected_clean_gas_nm3,
             'actual_clean_gas': current_report.actual_clean_gas_nm3,
-            'expected_production': current_report.expected_production_kg,  # Convert to tons
-            'actual_cbg_production': current_report.actual_cbg_production_kg,  # Convert to tons
-            'hourly_feedstock': hourly_feedstock,
-            'feedstock_cost': hourly_feedstock_cost,
+            'expected_production': current_report.expected_production_kg,
+            'actual_cbg_production': current_report.actual_cbg_production_kg,
+            'hourly_feedstock': current_report.feedstock_used_ton,
+            'feedstock_cost': current_report.total_feed_cost,
             'hourly_raw_biogas': current_report.raw_biogas_produced_nm3,
             'hourly_co2_savings': current_report.co2_savings_mt,
             'power_consumption': current_report.power_consumption_kwh,
             'power_cost': current_report.total_power_cost,
-            'fom_bags': current_report.fom_bag_count,
+            'fom_bags': current_report.fom_bag_count or 0,
             'running_hours': running_hours,
             'stoppage_hours': stoppage_hours,
+            
+            # Chart data for 8-hour window
+            'expected_clean_gas_data': json.dumps(expected_clean_gas_data),
+            'actual_clean_gas_data': json.dumps(actual_clean_gas_data),
+            'expected_production_data': json.dumps(expected_production_data),
+            'actual_cbg_production_data': json.dumps(actual_cbg_production_data),
             'biogas_chart_data': json.dumps(biogas_data),
             'co2_chart_data': json.dumps(co2_data),
+            'feedstock_chart_data': json.dumps(feedstock_data),  # NEW: Add feedstock chart data
             'time_labels': json.dumps(time_labels),
+            
+            # Window information
+            'current_window': window_name,
+            'current_shift': current_shift,
+            'window_start_hour': window_start,
+            'window_end_hour': window_end,
+            'total_reports_in_window': len(reports_in_window),
+            'hours_with_data': len(hourly_data),
         }
     else:
-        # Default values if no report exists
+        # Default values when no reports exist
+        default_time_labels = [f"{window_start + i:02d}:00" for i in range(8)]
         context = {
             'expected_clean_gas': 0,
             'actual_clean_gas': 0,
@@ -316,15 +430,53 @@ def dashboard(request):
             'fom_bags': 0,
             'running_hours': 0,
             'stoppage_hours': 0,
-            'biogas_chart_data': json.dumps([0, 0, 0, 0, 0, 0]),
-            'co2_chart_data': json.dumps([0, 0, 0, 0, 0, 0]),
-            'time_labels': json.dumps(['0:00', '0:10', '0:20', '0:30', '0:40', '0:50']),
+            'expected_clean_gas_data': json.dumps([0] * 8),
+            'actual_clean_gas_data': json.dumps([None] * 8),
+            'expected_production_data': json.dumps([0] * 8),
+            'actual_cbg_production_data': json.dumps([None] * 8),
+            'biogas_chart_data': json.dumps([None] * 8),
+            'co2_chart_data': json.dumps([None] * 8),
+            'feedstock_chart_data': json.dumps([None] * 8),  # NEW: Add default feedstock data
+            'time_labels': json.dumps(default_time_labels),
+            'current_window': window_name,
+            'current_shift': current_shift if 'current_shift' in locals() else 'Unknown',
+            'window_start_hour': window_start,
+            'window_end_hour': window_end,
+            'total_reports_in_window': 0,
+            'hours_with_data': 0,
         }
     
     return render(request, 'dashboard.html', context)
 
+
+# Additional utility function to get data for specific time range
+def get_reports_for_time_range(start_time, end_time):
+    """
+    Utility function to get reports for a specific time range
+    """
+    data = BiogasPlantReport.objects.filter(
+        report_time__gte=start_time,
+        report_time__lt=end_time
+    ).order_by('report_time')
+    print(data)
+    return data
+
+
+# Function to get data by shift
+def get_reports_by_shift(date, shift_name):
+    """
+    Utility function to get reports by shift name
+    """
+    return BiogasPlantReport.objects.filter(
+        date=date,
+        shift=shift_name
+    ).order_by('report_time')
+
 def feedstock_report(request):
+    
     # Get filter parameters
+    day = request.GET.get('day')
+    this_month = request.GET.get('this_month')
     date = request.GET.get('date')
     month = request.GET.get('month')
     year = request.GET.get('year')
@@ -340,24 +492,57 @@ def feedstock_report(request):
     selected_info = ""
     
     # Initialize query
-    query = BiogasPlantReport.objects.all()
-    
+    query = BiogasPlantReport.objects.all().order_by('date')
+    print("________________------", query)
     # Apply filters
     if date:
         # Filter by specific date
         selected_date = datetime.strptime(date, '%Y-%m-%d').date()
         query = query.filter(date=selected_date)
-        labels = [selected_date.strftime('%d %b %Y')]
         selected_info = f"Selected Date: {selected_date.strftime('%d %b %Y')}"
+        
+        # For single date, show each record
+        for report in query:
+            labels.append(report.date.strftime('%d %b %Y'))
+            feedstock_data.append(float(report.feedstock_used_ton))
+            feedstock_cost_data.append(float(report.total_feed_cost))
+            biogas_data.append(float(report.raw_biogas_produced_nm3))
+            co2_data.append(float(report.co2_savings_mt))
+            
     elif month and year:
         # Filter by month and year
         query = query.filter(date__year=year, date__month=month)
         month_name = datetime(int(year), int(month), 1).strftime('%B')
-        labels = [month_name]
         selected_info = f"Selected Month: {month_name} {year}"
+        
+        # Group by day for month view
+        daily_data = {}
+        for report in query:
+            day_key = report.date.strftime('%d %b')
+            if day_key not in daily_data:
+                daily_data[day_key] = {
+                    'feedstock': 0, 'cost': 0, 'biogas': 0, 'co2': 0, 'count': 0
+                }
+            daily_data[day_key]['feedstock'] += report.feedstock_used_ton
+            daily_data[day_key]['cost'] += report.total_feed_cost
+            daily_data[day_key]['biogas'] += report.raw_biogas_produced_nm3
+            daily_data[day_key]['co2'] += report.co2_savings_mt
+            daily_data[day_key]['count'] += 1
+        
+        # Prepare data for charts
+        for day_key, data in daily_data.items():
+            labels.append(day_key)
+            # Calculate averages if multiple entries per day
+            feedstock_data.append(data['feedstock'] / data['count'])
+            feedstock_cost_data.append(data['cost'] / data['count'])
+            biogas_data.append(data['biogas'] / data['count'])
+            co2_data.append(data['co2'] / data['count'])
+            
     elif year:
         # Filter by year
         query = query.filter(date__year=year)
+        selected_info = f"Selected Year: {year}"
+        
         # Group by month for year view
         months_data = {}
         for i in range(1, 13):
@@ -388,42 +573,114 @@ def feedstock_report(request):
                 feedstock_cost_data.append(0)
                 biogas_data.append(0)
                 co2_data.append(0)
-        
-        selected_info = f"Selected Year: {year}"
     else:
-        # Default to current day if no filters selected
-        today = datetime.now().date()
-        query = query.filter(date=today)
-        labels = [today.strftime('%d %b %Y')]
-        selected_info = "Today's Report"
+        selected_info = "All Available Data"
+        
+        for report in query:
+            labels.append(report.date.strftime('%d %b %Y'))
+            feedstock_data.append(float(report.feedstock_used_ton))
+            feedstock_cost_data.append(float(report.total_feed_cost))
+            biogas_data.append(float(report.raw_biogas_produced_nm3))
+            co2_data.append(float(report.co2_savings_mt))
+
     
     # Apply shift filter if provided
     if shift:
         query = query.filter(shift=shift)
-    
-    # If we haven't populated data arrays yet (for date or month+year filters)
-    if not feedstock_data:
-        for report in query:
-            report_data.append({
-                'highest_value': report.raw_biogas_produced_nm3,
-                'filter_no': report.power_consumption_kwh,
-                'shift': report.shift,
-                'date': report.date.strftime('%Y-%m-%d')
-            })
+        
+        # Recalculate chart data after applying shift filter
+        feedstock_data = []
+        feedstock_cost_data = []
+        biogas_data = []
+        co2_data = []
+        labels = []
+        
+        if date:
+            # For single date with shift filter
+            for report in query:
+                labels.append(f"{report.date.strftime('%d %b %Y')} - {report.shift}")
+                feedstock_data.append(float(report.feedstock_used_ton))
+                feedstock_cost_data.append(float(report.total_feed_cost))
+                biogas_data.append(float(report.raw_biogas_produced_nm3))
+                co2_data.append(float(report.co2_savings_mt))
+        elif month and year:
+            # For month/year with shift filter - group by day
+            daily_data = {}
+            for report in query:
+                day_key = report.date.strftime('%d %b')
+                if day_key not in daily_data:
+                    daily_data[day_key] = {
+                        'feedstock': 0, 'cost': 0, 'biogas': 0, 'co2': 0, 'count': 0
+                    }
+                daily_data[day_key]['feedstock'] += report.feedstock_used_ton
+                daily_data[day_key]['cost'] += report.total_feed_cost
+                daily_data[day_key]['biogas'] += report.raw_biogas_produced_nm3
+                daily_data[day_key]['co2'] += report.co2_savings_mt
+                daily_data[day_key]['count'] += 1
             
-            feedstock_data.append(report.feedstock_used_ton)
-            feedstock_cost_data.append(report.total_feed_cost)
-            biogas_data.append(report.raw_biogas_produced_nm3)
-            co2_data.append(report.co2_savings_mt)
+            for day_key, data in daily_data.items():
+                labels.append(day_key)
+                feedstock_data.append(data['feedstock'] / data['count'])
+                feedstock_cost_data.append(data['cost'] / data['count'])
+                biogas_data.append(data['biogas'] / data['count'])
+                co2_data.append(data['co2'] / data['count'])
+        elif year:
+            # For year with shift filter - group by month
+            months_data = {}
+            for i in range(1, 13):
+                months_data[i] = {'feedstock': 0, 'cost': 0, 'biogas': 0, 'co2': 0, 'count': 0}
+            
+            for report in query:
+                month_num = report.date.month
+                months_data[month_num]['feedstock'] += report.feedstock_used_ton
+                months_data[month_num]['cost'] += report.total_feed_cost
+                months_data[month_num]['biogas'] += report.raw_biogas_produced_nm3
+                months_data[month_num]['co2'] += report.co2_savings_mt
+                months_data[month_num]['count'] += 1
+            
+            months_full = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            labels = months_full
+            
+            for i in range(1, 13):
+                if months_data[i]['count'] > 0:
+                    feedstock_data.append(months_data[i]['feedstock'] / months_data[i]['count'])
+                    feedstock_cost_data.append(months_data[i]['cost'] / months_data[i]['count'])
+                    biogas_data.append(months_data[i]['biogas'] / months_data[i]['count'])
+                    co2_data.append(months_data[i]['co2'] / months_data[i]['count'])
+                else:
+                    feedstock_data.append(0)
+                    feedstock_cost_data.append(0)
+                    biogas_data.append(0)
+                    co2_data.append(0)
+        else:
+            # For today with shift filter
+            for report in query:
+                labels.append(f"{report.date.strftime('%d %b %Y')} - {report.shift}")
+                feedstock_data.append(float(report.feedstock_used_ton))
+                feedstock_cost_data.append(float(report.total_feed_cost))
+                biogas_data.append(float(report.raw_biogas_produced_nm3))
+                co2_data.append(float(report.co2_savings_mt))
+    
+    # Prepare report data for table display
+    report_data = []
+    for report in query:
+        report_data.append({
+            'date': report.date.strftime('%Y-%m-%d'),
+            'feedstock_used_ton': report.feedstock_used_ton,
+            'total_feed_cost': report.total_feed_cost,
+            'raw_biogas_produced_nm3': report.raw_biogas_produced_nm3,
+            'co2_savings_mt': report.co2_savings_mt
+        })
     
     # Get years for dropdown
     years = BiogasPlantReport.objects.dates('date', 'year').values_list('date__year', flat=True).distinct()
-    years = sorted(years)
+    years = sorted(years, reverse=True)  # Most recent years first
     
     # Get shifts for dropdown
     shifts = BiogasPlantReport.objects.values('shift').distinct()
     
-    # Prepare chart data
+    # Prepare chart data as JSON
     chart_data = {
         'feedstock': {
             'labels': labels,
@@ -436,24 +693,19 @@ def feedstock_report(request):
             'co2_savings': co2_data
         }
     }
-    # report_data.append({
-    #     'date': report.date.strftime('%Y-%m-%d'),
-    #     'feedstock_used_ton': report.feedstock_used_ton,
-    #     'total_feed_cost': report.total_feed_cost,
-    #     'raw_biogas_produced_nm3': report.raw_biogas_produced_nm3,
-    #     'co2_savings_mt': report.co2_savings_mt
-    # })
-
+    
+    # Convert chart_data to JSON string for template
+    chart_data_json = json.dumps(chart_data)
+    
     return render(request, 'feedstock_report.html', {
-        # 'report_data': report_data,
-        'report_data': query,
-        'chart_data': chart_data,
+        'report_data': report_data,
+        'chart_data': chart_data_json,
         'years': years,
         'shifts': shifts,
         'selected_info': selected_info,
         'selected_shift': shift
     })
-from django.shortcuts import render, redirect
+
 from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm
 
 def cost_entry_view(request):
@@ -461,61 +713,94 @@ def cost_entry_view(request):
     power_form = PowerCostForm(prefix='power')
     cbg_form = CBGSaleDispatchForm(prefix='cbg')
     fom_form = FOMSaleDispatchForm(prefix='fom')
+    expected_cbg_form = CBGProductionForm(prefix='expected_cbg')
+    expected_cleangas_production_form = CleanGasProductionForm(prefix='expected_clean_gas')
 
     if request.method == 'POST':
         if 'feedstock_submit' in request.POST:
             feed_form = FeedstockCostForm(request.POST, prefix='feed')
             if feed_form.is_valid():
                 feed_form.save()
-                success(request, message="Form Submitted successfully!")
+                success(request, message="Feedstock Cost Submitted successfully!")
                 return redirect('manual_entry')
 
         elif 'power_submit' in request.POST:
             power_form = PowerCostForm(request.POST, prefix='power')
             if power_form.is_valid():
                 power_form.save()
+                success(request, message="Power Cost Submitted successfully!")
                 return redirect('manual_entry')
 
         elif 'cbg_submit' in request.POST:
             cbg_form = CBGSaleDispatchForm(request.POST, prefix='cbg')
             if cbg_form.is_valid():
                 cbg_form.save()
+                success(request, message="CBG Sale & Dispatch Submitted successfully!")
                 return redirect('manual_entry')
         
         elif 'fom_submit' in request.POST:
             fom_form = FOMSaleDispatchForm(request.POST, prefix='fom')
             if fom_form.is_valid():
                 fom_form.save()
+                success(request, message="FOM Sale & Dispatch Submitted successfully!")
                 return redirect('manual_entry')
-
+        
+        elif 'expected_cbg_submit' in request.POST:
+            expected_cbg_form = CBGProductionForm(request.POST, prefix='expected_cbg')
+            if expected_cbg_form.is_valid():
+                expected_cbg_form.save()
+                success(request, message="Expected Hourly CBG Production Submitted successfully!")
+                return redirect('manual_entry')
+        
+        elif 'expected_clean_gas_submit' in request.POST:
+            expected_cleangas_production_form = CleanGasProductionForm(request.POST, prefix='expected_clean_gas')
+            if expected_cleangas_production_form.is_valid():
+                expected_cleangas_production_form.save()
+                success(request, message="Expected Hourly Clean Gas Production Submitted successfully!")
+                return redirect('manual_entry')
+        
     feedstock_entries = FeedstockCost.objects.all().order_by('-date_recorded')[:5]
     power_entries = PowerCost.objects.all().order_by('-date_recorded')[:5]
     cbg_entries = CBGSaleDispatch.objects.all().order_by('-date_recorded')[:5]
     fom_entries = FOMSaleDispatch.objects.all().order_by('-date_recorded')[:5]
-    
-    context = {
+    expected_cbg_entries = HourlyExpectedCBGProduction.objects.all().order_by('-date_recorded')[:5]
+    expected_cleangas_entries = ExpectedHourlyProduction.objects.all().order_by('-date_recorded')[:5]                              
+
+    return render(request, 'manual_entry.html', {
         'feed_form': feed_form,
         'power_form': power_form,
         'cbg_form': cbg_form,
         'fom_form': fom_form,
+        'expected_cbg_form': expected_cbg_form,
+        'expected_cleangas_production_form': expected_cleangas_production_form,
         'feedstock_entries': feedstock_entries,
         'power_entries': power_entries,
         'cbg_entries': cbg_entries,
         'fom_entries': fom_entries,
-    }
-    
-    return render(request, 'manual_entry.html', context)
+        'expected_cbg_entries': expected_cbg_entries,
+        'expected_cleangas_entries': expected_cleangas_entries,
+    })
 
+import json
+from datetime import date
 def report(request):
     # Start with all reports
     reports_query = BiogasPlantReport.objects.all()
-    print(reports_query)
+    
     # Filter by date if provided
     date_filter = request.GET.get('date')
     if date_filter:
         reports_query = reports_query.filter(date=date_filter)
-    
-    # Filter by month and year if provided
+
+    # Filter by day (today)
+    if request.GET.get('day'):
+        reports_query = reports_query.filter(date=date.today())
+
+    # Filter by this month
+    if request.GET.get('this_month'):
+        today = date.today()
+        reports_query = reports_query.filter(date__month=today.month, date__year=today.year)
+
     month = request.GET.get('month')
     year = request.GET.get('year')
     if month and year:
@@ -528,14 +813,22 @@ def report(request):
     
     # Order by date descending
     reports = reports_query.order_by('-date')
-    print(reports)
+    
     # Default values for charts
     expected_clean_gas_percentage = 0
     actual_production_percentage = 0
     
+    # Prepare data for line charts
+    chart_data = {
+        'dates': [],
+        'expected_clean_gas_data': [],
+        'actual_clean_gas_data': [],
+        'expected_production_data': [],
+        'actual_production_data': [],
+    }
+    
     # Calculate data for charts based on filtered reports
     if reports.exists():
-        print(reports)
         # Calculate totals for all filtered reports
         total_expected_clean_gas = sum(report.expected_clean_gas_nm3 or 0 for report in reports)
         total_actual_clean_gas = sum(report.actual_clean_gas_nm3 or 0 for report in reports)
@@ -543,7 +836,7 @@ def report(request):
         total_expected_production = sum(report.expected_production_kg or 0 for report in reports)
         total_actual_production = sum(report.actual_cbg_production_kg or 0 for report in reports)
         
-        # Calculate percentages
+        # Calculate percentages for pie charts
         if total_expected_clean_gas > 0:
             expected_clean_gas_percentage = (total_actual_clean_gas / total_expected_clean_gas) * 100
             expected_clean_gas_percentage = round(expected_clean_gas_percentage, 2)
@@ -551,6 +844,16 @@ def report(request):
         if total_expected_production > 0:
             actual_production_percentage = (total_actual_production / total_expected_production) * 100
             actual_production_percentage = round(actual_production_percentage, 2)
+        
+        # Prepare data for line charts (ordered by date for proper timeline)
+        ordered_reports = reports.order_by('date')
+        
+        for report in ordered_reports:
+            chart_data['dates'].append(report.date.strftime('%Y-%m-%d'))
+            chart_data['expected_clean_gas_data'].append(float(report.expected_clean_gas_nm3 or 0))
+            chart_data['actual_clean_gas_data'].append(float(report.actual_clean_gas_nm3 or 0))
+            chart_data['expected_production_data'].append(float(report.expected_production_kg or 0))
+            chart_data['actual_production_data'].append(float(report.actual_cbg_production_kg or 0))
     
     # Get unique years for the year dropdown
     years = BiogasPlantReport.objects.dates('date', 'year')
@@ -562,15 +865,6 @@ def report(request):
         {'shift_name': 'Night Shift'}
     ]
     
-    # Calculate additional aggregated data for display
-    total_feedstock = sum(report.feedstock_used_ton or 0 for report in reports)
-    total_feed_cost = sum(report.total_feed_cost or 0 for report in reports)
-    total_raw_biogas = sum(report.raw_biogas_produced_nm3 or 0 for report in reports)
-    total_power_consumption = sum(report.power_consumption_kwh or 0 for report in reports)
-    total_power_cost = sum(report.total_power_cost or 0 for report in reports)
-    total_co2_savings = sum(report.co2_savings_mt or 0 for report in reports)
-    total_cbg_dispatch = sum(report.cbg_sale_dispatch_ton or 0 for report in reports)
-    
     context = {
         'reports': reports,
         'expected_clean_gas': expected_clean_gas_percentage,
@@ -578,13 +872,13 @@ def report(request):
         'years': years,
         'shifts': shifts,
         'selected_shift': shift or '',
-        'total_feedstock': round(total_feedstock, 2),
-        'total_feed_cost': round(total_feed_cost, 2),
-        'total_raw_biogas': round(total_raw_biogas, 2),
-        'total_power_consumption': round(total_power_consumption, 2),
-        'total_power_cost': round(total_power_cost, 2),
-        'total_co2_savings': round(total_co2_savings, 2),
-        'total_cbg_dispatch': round(total_cbg_dispatch, 2),
+        
+        # Chart data for JavaScript
+        'chart_dates': json.dumps(chart_data['dates']),
+        'expected_clean_gas_data': json.dumps(chart_data['expected_clean_gas_data']),
+        'actual_clean_gas_data': json.dumps(chart_data['actual_clean_gas_data']),
+        'expected_production_data': json.dumps(chart_data['expected_production_data']),
+        'actual_production_data': json.dumps(chart_data['actual_production_data']),
     }
     
     return render(request, 'report.html', context)
@@ -752,15 +1046,42 @@ def calculate_chart_data(queryset):
 
 class ReportViewset(ReadOnlyModelViewSet):
     serializer_class = ReportSerializer
-    queryset = BiogasPlantReport.objects.all()
+    def get_queryset(self):
+        return BiogasPlantReport.objects.order_by('-id')[:1]
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['date', 'shift']
     filterset_fields = ['date', 'shift']
     ordering_fields = ['date', 'shift']
-    # def get_queryset(self):
-    #     queryset = BiogasPlantReport.objects.all()
-    #     date = self.kwargs['date']
-    #     if date is not None:
-    #         queryset = queryset.filter(date__in=date)
-    #     return queryset
+
+
+def set_point_view(request):
+    if request.method == 'POST':
+        form = SetPointForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('set_point_list') 
+    else:
+        form = SetPointForm()
+    return render(request, 'set_point.html', {'form': form})
+
+
+def set_point_list_view(request):
+    set_points = SetPoint.objects.all()
+    return render(request, 'list.html', {'set_points': set_points})
+
+def edit_set_point(request, id):
+    point = get_object_or_404(SetPoint, id=id)
+    if request.method == 'POST':
+        form = SetPointForm(request.POST, instance=point)
+        if form.is_valid():
+            form.save()
+            return redirect('set_point_list')
+    else:
+        form = SetPointForm(instance=point)
+    return render(request, 'list.html', {'form': form})
+
+def delete_set_point(request, id):
+    point = get_object_or_404(SetPoint, id=id)
+    point.delete()
+    return redirect('set_point_list')

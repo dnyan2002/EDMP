@@ -29,10 +29,10 @@ class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=50, verbose_name="Full Name")
     company_name = models.CharField(max_length=70, verbose_name="Company Name")
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, verbose_name="Role", related_name="users")
-    plant = models.ForeignKey(Plant,on_delete=models.CASCADE, verbose_name=Plant)
+    plant = models.ForeignKey(Plant,on_delete=models.CASCADE, verbose_name=Plant, default=1)
     groups = models.ManyToManyField(Group, blank=True, related_name="customuser_groups")  # Fix conflict
     user_permissions = models.ManyToManyField(Permission, blank=True, related_name="customuser_permissions")
-    status = models.CharField(max_length=10, choices=[('Active', 'Active'), ('Inactive', 'Inactive')])
+    status = models.CharField(max_length=10, choices=[('Active', 'Active'), ('Inactive', 'Inactive')], default='Active')
 
     class Meta:
         verbose_name = 'User'
@@ -249,6 +249,7 @@ class BiogasPlantReport(models.Model):
     class Meta:
         verbose_name = 'Biogas Plant Report'
         verbose_name_plural = 'Biogas Plant Report'
+        get_latest_by = 'id'
 
 
 class FeedstockCost(models.Model):
@@ -281,3 +282,33 @@ class DriverStatus(models.Model):
         verbose_name = 'Driver Status'
         verbose_name_plural = 'Driver Status'
         db_table = 'driverstatus'
+
+class ExpectedHourlyProduction(models.Model):
+    clean_gas_production = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Hourly Expected Clean Gas Production (Nm³)"
+    )
+    unit = models.CharField(max_length=10, default='Ton')
+    date_recorded = models.DateTimeField(auto_now_add=True)
+
+    def str(self):
+        return f"Clean Gas: {self.clean_gas_production} Nm³ on {self.date_recorded}"
+
+
+class HourlyExpectedCBGProduction(models.Model):
+    cbg_production = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Hourly Expected CBG Production (kg)"
+    )
+    unit = models.CharField(max_length=10, default='Ton')
+    date_recorded = models.DateTimeField(auto_now_add=True)
+
+    def str(self):
+        return f"CBG: {self.cbg_production} kg on {self.date_recorded}"
+
+
+class SetPoint(models.Model):
+    parameter_name = models.CharField(max_length=100)
+    set_point_1 = models.FloatField()
+    set_point_2 = models.FloatField()
+
+    def str(self):
+        return self.parameter_name

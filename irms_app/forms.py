@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .models import BiogasPlantReport, FeedstockCost, PowerCost, CBGSaleDispatch, FOMSaleDispatch, CustomUser, Role, PIDData, Plant
+from .models import (
+    BiogasPlantReport, FeedstockCost, PowerCost, CBGSaleDispatch, FOMSaleDispatch, SetPoint,
+    CustomUser, Role, PIDData, Plant, ExpectedHourlyProduction, HourlyExpectedCBGProduction
+)
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Username", max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -115,5 +118,33 @@ class FOMSaleDispatchForm(forms.ModelForm):
         fields = ['dispatch_quantity', 'unit']
         widgets = {
             'dispatch_quantity': forms.NumberInput(attrs={'step': '0.01'}),
+            'unit': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+
+class SetPointForm(forms.ModelForm):
+    class Meta:
+        model = SetPoint
+        fields = ['parameter_name', 'set_point_1', 'set_point_2']
+        widgets = {
+            'parameter_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Parameter Name'}),
+            'set_point_1': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter Set Point 1'}),
+            'set_point_2': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter Set Point 2'}),
+        }
+
+class CleanGasProductionForm(forms.ModelForm):
+    class Meta:
+        model = ExpectedHourlyProduction
+        fields = ['clean_gas_production', 'unit']
+        widgets = {
+            'clean_gas_production': forms.NumberInput(attrs={'class': 'form-control'}),
+            'unit': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+
+class CBGProductionForm(forms.ModelForm):
+    class Meta:
+        model = HourlyExpectedCBGProduction
+        fields = ['cbg_production', 'unit']
+        widgets = {
+            'cbg_production': forms.NumberInput(attrs={'class': 'form-control'}),
             'unit': forms.TextInput(attrs={'readonly': 'readonly'}),
         }

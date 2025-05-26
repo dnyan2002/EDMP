@@ -50,12 +50,16 @@
                     
                     <!-- Measurement readings -->
                     <div class="t m0 x29 he y3a ff1 fs4 fc1 sc0 ls4 wsb">{{data.crusher1_naphier_tph | floatformat:2}},</div>
-                    <div class="t m0 x2a he y3b ff1 fs4 fc1 sc0 ls4 ws9">80.55</div>
+                    {% for item in crusher1_total %}
+                        <div class="t m0 x2a he y3b ff1 fs4 fc1 sc0 ls4 ws9">{{item.total_crusher | floatformat:2}}</div>
+                    {% endfor %}
                     <div class="t m0 x2b he y3c ff1 fs4 fc1 sc0 ls4 wsb">{{data.water_flow_meter1 | floatformat:2}},</div>
                     <div class="t m0 x3a he y5a ff1 fs4 fc1 sc0 ls4 wsb">{{data.water_flow_meter2 | floatformat:2}}</div>
                     <div class="t m0 x3a he y6a ff1 fs4 fc1 sc0 ls4 wsb">98.05</div>
-                    <div class="t m0 x4a he y7a ff1 fs4 fc1 sc0 ls4 wsb">{{data.bagging_unit | floatformat:2}}</div>
-                    <div class="t m0 x4a he y8a ff1 fs4 fc1 sc0 ls4 wsb">12.15</div>
+                    <div class="t m0 x4a he y7a ff1 fs4 fc1 sc0 ls4 wsb">{{data.bagging_unit | floatformat:0}}</div>
+                    {% for item in fom_bag_total %}
+                        <div class="t m0 x4a he y8a ff1 fs4 fc1 sc0 ls4 wsb">{{item.fom_bag_total | floatformat:0}}</div>
+                    {% endfor %}
                     <div class="t m0 xz he y3d ff1 fs4 fc1 sc0 ls4 ws9">50.75</div>
                     <div class="t m0 x2c he y3e ff1 fs4 fc1 sc0 ls4 wsb">{{data.pt_slurry_flowmeter2 | floatformat:2}},</div>
                     <div class="t m0 x2c he y3f ff1 fs4 fc1 sc0 ls4 ws9">70.32</div>
@@ -70,7 +74,9 @@
                     <div class="t m0 x38 he y51 ff1 fs4 fc1 sc0 ls4 ws9">{{data.baloon3_pressure | floatformat:2}}</div>
                     <div class="t m0 x37 he y48 ff1 fs4 fc1 sc0 ls4 ws9">{{data.baloon3_lvl | floatformat:2}}</div>
                     <div class="t m0 x29 he y49 ff1 fs4 fc1 sc0 ls4 wsb">{{data.crusher2_naphier_tph | floatformat:2}},</div>
-                    <div class="t m0 x2a he y4a ff1 fs4 fc1 sc0 ls4 ws9">55.05</div>
+                    {% for item in crusher2_total %}
+                        <div class="t m0 x2a he y4a ff1 fs4 fc1 sc0 ls4 ws9">{{item.total_crusher | floatformat:2}}</div>
+                    {% endfor %}
 
                     <!-- Additional readings -->
                     <div class="t m0 xf he y4e ff1 fs4 fc1 sc0 ls4 ws9">{{data.dt1_pr_tx_1 | floatformat:2}}</div>
