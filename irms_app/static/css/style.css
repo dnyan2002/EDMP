@@ -18,6 +18,10 @@ body {
 .box4.red {
     background-color: red;
 }
+.stale-data {
+    color: red;
+    font-weight: bold;
+}
 
 .box1 {
     width: 11px;

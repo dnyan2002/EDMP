@@ -91,92 +91,132 @@
     <div class="container-fluid">
         <!-- First row of status cards -->
         <div class="row mb-4">
+            <!-- Actual Clean Gas -->
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="status-card bg-primary text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Actual Clean Gas Production</div>
-                            <div class="status-value">{{ actual_clean_gas|floatformat:1 }} nm³</div>
-                            <div class="status-subtext">Hourly Expected Clean Gas Production: {{ expected_clean_gas|floatformat:1 }} nm³</div>
+                            <div class="status-value">
+                                {% if actual_clean_gas == "?" %}?{% else %}{{ actual_clean_gas|floatformat:1 }} nm³{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Hourly Expected Clean Gas Production:
+                                {% if expected_clean_gas == "?" %}?{% else %}{{ expected_clean_gas|floatformat:1 }} nm³{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Actual CBG Production -->
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="status-card bg-success text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Actual CBG Production</div>
-                            <div class="status-value">{{ actual_cbg_production|floatformat:1 }} T</div>
-                            <div class="status-subtext">Hourly Expected CBG Production: {{ expected_production|floatformat:1 }} T</div>
+                            <div class="status-value">
+                                {% if actual_cbg_production == "?" %}?{% else %}{{ actual_cbg_production|floatformat:1 }} T{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Hourly Expected CBG Production:
+                                {% if expected_production == "?" %}?{% else %}{{ expected_production|floatformat:1 }} T{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Feedstock -->
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="status-card bg-info text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Feedstock Used</div>
-                            <div class="status-value">{{ hourly_feedstock|floatformat:0 }} T</div>
-                            <div class="status-subtext">Feedstock Cost: ₹{{ feedstock_cost|floatformat:0 }}</div>
+                            <div class="status-value">
+                                {% if hourly_feedstock == "?" %}?{% else %}{{ hourly_feedstock|floatformat:0 }} T{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Feedstock Cost:
+                                {% if feedstock_cost == "?" %}?{% else %}₹{{ feedstock_cost|floatformat:0 }}{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Biogas and CO2 -->
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="status-card bg-warning text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly Raw BioGas Produced</div>
-                            <div class="status-value">{{ hourly_raw_biogas|floatformat:0 }} nm³</div>
-                            <div class="status-subtext">Hourly CO₂ Savings: {{ hourly_co2_savings|floatformat:1 }} Mt</div>
+                            <div class="status-value">
+                                {% if hourly_raw_biogas == "?" %}?{% else %}{{ hourly_raw_biogas|floatformat:0 }} nm³{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Hourly CO₂ Savings:
+                                {% if hourly_co2_savings == "?" %}?{% else %}{{ hourly_co2_savings|floatformat:1 }} Mt{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Second row of status cards -->
         <div class="row">
+            <!-- Power -->
             <div class="col-xl-4 col-md-6 mb-4">
                 <div class="status-card bg-danger text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Power Consumption</div>
-                            <div class="status-value">{{ power_consumption|floatformat:0 }} kWh</div>
-                            <div class="status-subtext">Power Cost: ₹{{ power_cost|floatformat:0 }}</div>
+                            <div class="status-value">
+                                {% if power_consumption == "?" %}?{% else %}{{ power_consumption|floatformat:0 }} kWh{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Power Cost:
+                                {% if power_cost == "?" %}?{% else %}₹{{ power_cost|floatformat:0 }}{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- FOM Bags -->
             <div class="col-xl-4 col-md-6 mb-4">
                 <div class="status-card bg-secondary text-white rounded shadow">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Hourly FOM Bags Generated</div>
-                            <div class="status-value">{{ fom_bags }}</div>
+                            <div class="status-value">
+                                {% if fom_bags == "?" %}?{% else %}{{ fom_bags }}{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Running/Stoppage Hours -->
             <div class="col-xl-4 col-md-6 mb-4">
                 <div class="status-card" style="background-color: #5e418c; color: white; border-radius: 0.25rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);">
                     <div class="card-body">
                         <div>
                             <div class="status-text">Running Hours</div>
-                            <div class="status-value">{{ running_hours | floatformat:2}}</div>
-                            <div class="status-subtext">Stoppage Hours: {{ stoppage_hours | floatformat:2 }}</div>
+                            <div class="status-value">
+                                {% if running_hours == "?" %}?{% else %}{{ running_hours|floatformat:2 }}{% endif %}
+                            </div>
+                            <div class="status-subtext">
+                                Stoppage Hours:
+                                {% if stoppage_hours == "?" %}?{% else %}{{ stoppage_hours|floatformat:2 }}{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
 <!-- Content Row -->

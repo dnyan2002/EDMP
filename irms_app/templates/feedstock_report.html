@@ -360,8 +360,8 @@
             <select id="shift" name="shift"> 
                 <option value="">All</option>
                 {% for shift in shifts %} 
-                    <option value="{{ shift.shift_name }}" {% if shift.shift_name == selected_shift %} selected {% endif %}> 
-                        {{ shift.shift_name }} 
+                    <option value="{{ shift.shift }}" {% if shift.shift == selected_shift %} selected {% endif %}> 
+                        {{ shift.shift }} 
                     </option> 
                 {% endfor %} 
             </select> 
@@ -379,9 +379,8 @@
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
             <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
             <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
-            <button type="submit" name="month_button" class="report-button">Month</button>
-            <button type="submit" name="filter_type" value="day" class="report-button">
-                <i class="fas fa-calendar-day"></i> Day</button>   
+            <button type="submit" name="filter_type" value="month" class="report-button"><i class="fas fa-calendar-alt"></i> Month</button>
+            <button type="submit" name="filter_type" value="day" class="report-button"><i class="fas fa-calendar-day"></i> Day</button>   
         </div>
     </form>
 
@@ -560,7 +559,7 @@
 
         // Define the headers for the PDF table
         const headers = [
-            ["Part Number", "Highest Value", "Station No", "Status", "Shift", "Date"]
+            ["Date", "Feedstock Used (ton)", "Total Feed Cost",	"Raw Biogas Produced (Nm³)", "CO2 Savings (MT)"]
         ];
 
         // Use autoTable to create the table in PDF

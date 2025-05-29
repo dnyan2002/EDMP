@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from .serializers import PIDDataSerializer, ReportSerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import logging
+from collections import defaultdict
 from .forms import (
         FeedstockCostForm, PowerCostForm, 
         CBGSaleDispatchForm, FOMSaleDispatchForm, BiogasPlantReportForm,
@@ -44,40 +45,121 @@ def logout_view(request):
     logout(request)
     return redirect(reverse('login'))
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta
+from collections import defaultdict
 
+class DataWrapper:
+    """Wrapper class to handle data display logic with formatting"""
+    def __init__(self, data, is_recent):
+        self._data = data
+        self._is_recent = is_recent
+    
+    def __getattr__(self, name):
+        if not self._is_recent:
+            return "?"
+        
+        if self._data and hasattr(self._data, name):
+            value = getattr(self._data, name)
+            
+            # Apply formatting based on field name
+            if value is not None:
+                # Fields that need 2 decimal places
+                if name in ['crusher1_naphier_tph', 'water_flow_meter1', 'water_flow_meter2', 
+                           'pt_slurry_flowmeter2', 'pt_slurry_flowmeter1', 'baloon1_pressure', 
+                           'baloon1_lvl', 'baloon2_pressure', 'baloon2_lvl', 'sls_slurry_flowmeter',
+                           'baloon3_pressure', 'baloon3_lvl', 'crusher2_naphier_tph', 
+                           'dt1_pr_tx_1', 'dt1_pr_tx_2']:
+                    return f"{float(value):.2f}"
+                
+                # Fields that need no decimal places (integers)
+                elif name in ['bagging_unit']:
+                    return f"{int(value)}"
+                
+                # Default formatting for other numeric fields
+                else:
+                    try:
+                        return f"{float(value):.2f}"
+                    except (ValueError, TypeError):
+                        return str(value)
+            
+            return value
+        
+        return "?"
+
+@login_required
 def home(request):
-    latest_data = PIDData.objects.last()
-    from collections import defaultdict
-
+    # Check for data within the last 10 minutes
+    ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+    recent_data = PIDData.objects.filter(created_at__gte=ten_minutes_ago).last()
+    
+    # Use recent data if available, otherwise use latest data
+    latest_data = recent_data if recent_data else PIDData.objects.last()
+    
+    # Flag to indicate if data is recent (within 10 minutes)
+    is_data_recent = recent_data is not None
+    
+    # Wrap the data to handle "?" display logic
+    wrapped_data = DataWrapper(latest_data, is_data_recent)
+    
+    # Calculate totals and wrap them too
     crusher1_total = defaultdict(float)
     for entry in PIDData.objects.all():
-        day = entry.created_at.date()  # Extract date in Python
+        day = entry.created_at.date()
         crusher1_total[day] += entry.crusher1_naphier_tph
-    crusher1_total = [{"day": day, "total_crusher": total} for day, total in crusher1_total.items()]
+    
+    # Apply "?" logic to totals if data is not recent
+    if is_data_recent:
+        crusher1_total = [{"day": day, "total_crusher": f"{total:.2f}"} for day, total in crusher1_total.items()]
+    else:
+        crusher1_total = [{"day": day, "total_crusher": "?"} for day, total in crusher1_total.items()]
     
     crusher2_total = defaultdict(float)
     for entry in PIDData.objects.all():
-        day = entry.created_at.date()  # Extract date in Python
+        day = entry.created_at.date()
         crusher2_total[day] += entry.crusher2_naphier_tph
-    crusher2_total = [{"day": day, "total_crusher": total} for day, total in crusher2_total.items()]
+    
+    if is_data_recent:
+        crusher2_total = [{"day": day, "total_crusher": f"{total:.2f}"} for day, total in crusher2_total.items()]
+    else:
+        crusher2_total = [{"day": day, "total_crusher": "?"} for day, total in crusher2_total.items()]
     
     fom_bag_total = defaultdict(float)
     for entry in PIDData.objects.all():
-        day = entry.created_at.date()  # Extract date in Python
+        day = entry.created_at.date()
         fom_bag_total[day] += entry.bagging_unit
-    fom_bag_total = [{"day": day, "fom_bag_total": total} for day, total in fom_bag_total.items()]
+    
+    if is_data_recent:
+        fom_bag_total = [{"day": day, "fom_bag_total": f"{total:.0f}"} for day, total in fom_bag_total.items()]
+    else:
+        fom_bag_total = [{"day": day, "fom_bag_total": "?"} for day, total in fom_bag_total.items()]
+    
     context = {
-        "data":latest_data,
-        "crusher1_total":crusher1_total,
-        "crusher2_total":crusher2_total,
-        "fom_bag_total":fom_bag_total
+        "data": wrapped_data,
+        "crusher1_total": crusher1_total,
+        "crusher2_total": crusher2_total,
+        "fom_bag_total": fom_bag_total,
     }
     return render(request, 'home.html', context)
 
 def pid_data(request):
-    latest_data = PIDData.objects.last()
+    # Check for data within the last 10 minutes
+    ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+    recent_data = PIDData.objects.filter(created_at__gte=ten_minutes_ago).last()
+    
+    # Use recent data if available, otherwise use latest data
+    latest_data = recent_data if recent_data else PIDData.objects.last()
+    
+    # Flag to indicate if data is recent (within 10 minutes)
+    is_data_recent = recent_data is not None
+    
+    # Wrap the data to handle "?" display logic
+    wrapped_data = DataWrapper(latest_data, is_data_recent)
+    
     context = {
-        "data":latest_data
+        "data": wrapped_data
     }
     return render(request, 'pid_data.html', context)
 
@@ -148,101 +230,122 @@ class PIDDataViewSet(viewsets.ModelViewSet):
 #     return render(request, 'powerconsumption_report.html')
 
 from django.shortcuts import render
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, Max, Min
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from .models import BiogasPlantReport
+from django.shortcuts import render
+from django.db.models import Avg, Sum, Count
+from datetime import datetime, timedelta
+from django.utils import timezone
 
+@login_required
 def powerconsumption_report(request):
-    # Initialize the context dictionary
     context = {}
-    
-    # Get date filter parameters
+
+    # Get filters
+    filter_type = request.GET.get('filter_type', 'individual')
     date = request.GET.get('date')
     month = request.GET.get('month')
     year = request.GET.get('year')
     shift = request.GET.get('shift')
-    filter_type = request.GET.get('filter_type')
-    
+    limit = int(request.GET.get('limit', 50))
+
+    # Today and current month values
+    today = timezone.localdate()
+    current_month = today.month
+    current_year = today.year
+
     # Base queryset
     queryset = BiogasPlantReport.objects.all()
-    
-    # Apply filters if provided
-    if date:
-        queryset = queryset.filter(date=date)
-    elif month and year:
-        queryset = queryset.filter(date__month=month, date__year=year)
-    elif year:
-        queryset = queryset.filter(date__year=year)
-    
+
+    # Filter by shift if provided
     if shift:
         queryset = queryset.filter(shift=shift)
-    
-    # Get available years for the dropdown
+
+    # Handle button filters
+    if filter_type == "day":
+        queryset = queryset.filter(date=today)
+    elif filter_type == "month":
+        queryset = queryset.filter(date__month=current_month, date__year=current_year)
+    else:
+        # Manual date/month/year filters
+        if date:
+            queryset = queryset.filter(date=date)
+        elif month and year:
+            queryset = queryset.filter(date__month=int(month), date__year=int(year))
+        elif year:
+            queryset = queryset.filter(date__year=int(year))
+
+    # Get years for dropdown
     all_years = BiogasPlantReport.objects.dates('date', 'year')
-    years = [date.year for date in all_years]
-    
-    # Get report data based on filtered queryset
-    report_data = queryset.order_by('-date')
-    
-    # Calculate power and production metrics for charts
+    years = sorted([dt.year for dt in all_years], reverse=True)
+
+    # Main data table
+    report_data = queryset.order_by('-date', '-id')
+
+    # Limit for chart data
+    individual_reports = report_data[:limit]
+
+    # Chart data
     monthly_data = []
     hourly_data = []
-    
-    if filter_type == 'day' and date:
-        # Get hourly data for the selected day
-        day_reports = queryset.filter(date=date).order_by('date')
-        for report in day_reports:
-            hourly_data.append({
-                'hour': report.date.strftime('%H:00'),
-                'bags': report.fom_bag_count,
-                'power_consumption': report.power_consumption_kwh,
-                'power_cost': report.total_power_cost
-            })
-    else:
-        # Get monthly data for charts
-        current_year = datetime.now().year if not year else int(year)
-        for month_num in range(1, 13):
-            monthly_report = queryset.filter(
-                date__year=current_year, 
-                date__month=month_num
-            ).aggregate(
-                avg_power=Avg('power_consumption_kwh'),
-                avg_cost=Avg('total_power_cost'),
-                total_bags=Sum('fom_bag_count')
-            )
-            
-            if monthly_report['avg_power'] is not None:
-                month_name = datetime(current_year, month_num, 1).strftime('%B')
-                monthly_data.append({
-                    'month': month_name,
-                    'power_consumption': monthly_report['avg_power'],
-                    'power_cost': monthly_report['avg_cost'],
-                    'total_bags': monthly_report['total_bags'] or 0
-                })
-    
-    # Calculate hourly bag production for the selected date (if available)
-    if not hourly_data and date:
-        # Simulate hourly data if not available
-        for hour in range(24):
-            hourly_data.append({
-                'hour': f"{hour:02d}:00",
-                'bags': 0
-            })
-    
-    context = {
+
+    for i, report in enumerate(individual_reports):
+        date_label = report.date.strftime('%m/%d')
+        shift_short = report.shift[:1] if report.shift else "?"
+        point_label = f"{date_label}-{shift_short}{i+1}"
+
+        monthly_data.append({
+            'month': point_label,
+            'power_consumption': float(report.power_consumption_kwh or 0),
+            'power_cost': float(report.total_power_cost or 0),
+            'gas_purity': float(report.gas_purity_percent or 0),
+        })
+
+        hourly_data.append({
+            'hour': point_label,
+            'bags': int(report.fom_bag_count or 0),
+        })
+
+    if not monthly_data:
+        monthly_data = [{'month': 'No Data', 'power_consumption': 0, 'power_cost': 0}]
+    if not hourly_data:
+        hourly_data = [{'hour': 'No Data', 'bags': 0}]
+
+    # Summary statistics
+    summary_stats = queryset.aggregate(
+        total_records=Count('id'),
+        avg_power=Avg('power_consumption_kwh'),
+        max_power=Max('power_consumption_kwh'),
+        min_power=Min('power_consumption_kwh'),
+        total_bags=Sum('fom_bag_count'),
+        avg_bags=Avg('fom_bag_count'),
+        avg_gas_purity=Avg('gas_purity_percent'),
+    )
+
+    # Context to template
+    context.update({
         'report_data': report_data,
         'years': years,
         'selected_shift': shift,
         'monthly_data': monthly_data,
         'hourly_data': hourly_data,
-    }
-    
+        'selected_date': date,
+        'selected_month': month,
+        'selected_year': year,
+        'filter_type': filter_type,
+        'limit': limit,
+        'summary_stats': summary_stats,
+    })
+
     return render(request, 'powerconsumption_report.html', context)
 
+@login_required
 def bagsgenerated_report(request):
     return render(request, 'bags.html')
 
+@login_required
 def biogas_report_json(request):
     reports = BiogasPlantReport.objects.all().order_by('-date')
     
@@ -262,6 +365,7 @@ def biogas_report_json(request):
 
     return JsonResponse({'reports': data})
 
+@login_required
 def dashboard(request):
     from datetime import datetime, timedelta
     from django.utils import timezone
@@ -307,15 +411,30 @@ def dashboard(request):
         report_time__lt=window_end_time
     ).order_by('report_time')
     print("Reports in Window", reports_in_window)
-    # Method 2: Alternative - Get reports by shift (if you prefer shift-based filtering)
-    reports_in_window = BiogasPlantReport.objects.filter(
-        date=today,
-        shift=current_shift
-    ).order_by('report_time')
-    
-    # Get the most recent report for status cards
-    current_report = BiogasPlantReport.objects.order_by('-date', '-report_time').first()
-    print("Current Report", current_report)
+    # # Method 2: Alternative - Get reports by shift (if you prefer shift-based filtering)
+    # reports_in_window = BiogasPlantReport.objects.filter(
+    #     date=today,
+    #     shift=current_shift
+    # ).order_by('report_time')
+    print("Reports in Window", reports_in_window)
+    previous_hour_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
+    previous_hour_end = previous_hour_start + timedelta(hours=1)
+
+    print("Previous hour window:", previous_hour_start, "to", previous_hour_end)
+
+    # Step 2: Only proceed if this 1-hour window is within the current shift window
+    if window_start_time <= previous_hour_start < window_end_time:
+        print("Its inside the current shift window")
+        previous_hour_report = reports_in_window.filter(
+            report_time__gte=previous_hour_start,
+            report_time__lt=previous_hour_end
+        ).order_by('-report_time')
+        print("Previous hour report:", previous_hour_report)
+        print("Window Start time", window_start_time)
+        print("Window End time", window_end_time)
+    else:
+        previous_hour_report = None
+
     # Create hourly data structure
     hourly_data = {}
     
@@ -340,13 +459,13 @@ def dashboard(request):
     feedstock_data = []  # NEW: Add feedstock data array
     
     # Get expected values for straight lines (from most recent report)
-    if current_report:
-        expected_clean_gas_value = float(current_report.expected_clean_gas_nm3)
-        expected_production_value = float(current_report.expected_production_kg)
+    if previous_hour_report:
+        expected_clean_gas_value = float(previous_hour_report.expected_clean_gas_nm3)
+        expected_production_value = float(previous_hour_report.expected_production_kg)
     else:
         expected_clean_gas_value = 0
         expected_production_value = 0
-    
+    print("Previous >>>>>>>>>>>------------", previous_hour_report)
     # Generate data for each hour in the 8-hour window
     for hour_offset in range(8):
         hour = window_start + hour_offset
@@ -373,25 +492,23 @@ def dashboard(request):
             biogas_data.append(None)
             co2_data.append(None)
             feedstock_data.append(None)  # NEW: Add null feedstock data
-    
-    # Build context data
-    if current_report:
-        running_hours = current_report.running_time.total_seconds() / 3600
-        stoppage_hours = current_report.stoppage_time.total_seconds() / 3600
-        
+
+    if previous_hour_report:
+        running_hours = previous_hour_report.running_time.total_seconds() / 3600
+        stoppage_hours = previous_hour_report.stoppage_time.total_seconds() / 3600
+
         context = {
-            # Status card data (current values)
-            'expected_clean_gas': current_report.expected_clean_gas_nm3,
-            'actual_clean_gas': current_report.actual_clean_gas_nm3,
-            'expected_production': current_report.expected_production_kg,
-            'actual_cbg_production': current_report.actual_cbg_production_kg,
-            'hourly_feedstock': current_report.feedstock_used_ton,
-            'feedstock_cost': current_report.total_feed_cost,
-            'hourly_raw_biogas': current_report.raw_biogas_produced_nm3,
-            'hourly_co2_savings': current_report.co2_savings_mt,
-            'power_consumption': current_report.power_consumption_kwh,
-            'power_cost': current_report.total_power_cost,
-            'fom_bags': current_report.fom_bag_count or 0,
+            'expected_clean_gas': previous_hour_report.expected_clean_gas_nm3,
+            'actual_clean_gas': previous_hour_report.actual_clean_gas_nm3,
+            'expected_production': previous_hour_report.expected_production_kg,
+            'actual_cbg_production': previous_hour_report.actual_cbg_production_kg,
+            'hourly_feedstock': previous_hour_report.feedstock_used_ton,
+            'feedstock_cost': previous_hour_report.total_feed_cost,
+            'hourly_raw_biogas': previous_hour_report.raw_biogas_produced_nm3,
+            'hourly_co2_savings': previous_hour_report.co2_savings_mt,
+            'power_consumption': previous_hour_report.power_consumption_kwh,
+            'power_cost': previous_hour_report.total_power_cost,
+            'fom_bags': previous_hour_report.fom_bag_count or 0,
             'running_hours': running_hours,
             'stoppage_hours': stoppage_hours,
             
@@ -414,42 +531,44 @@ def dashboard(request):
             'hours_with_data': len(hourly_data),
         }
     else:
-        # Default values when no reports exist
-        default_time_labels = [f"{window_start + i:02d}:00" for i in range(8)]
         context = {
-            'expected_clean_gas': 0,
-            'actual_clean_gas': 0,
-            'expected_production': 0,
-            'actual_cbg_production': 0,
-            'hourly_feedstock': 0,
-            'feedstock_cost': 0,
-            'hourly_raw_biogas': 0,
-            'hourly_co2_savings': 0,
-            'power_consumption': 0,
-            'power_cost': 0,
-            'fom_bags': 0,
-            'running_hours': 0,
-            'stoppage_hours': 0,
-            'expected_clean_gas_data': json.dumps([0] * 8),
-            'actual_clean_gas_data': json.dumps([None] * 8),
-            'expected_production_data': json.dumps([0] * 8),
-            'actual_cbg_production_data': json.dumps([None] * 8),
-            'biogas_chart_data': json.dumps([None] * 8),
-            'co2_chart_data': json.dumps([None] * 8),
-            'feedstock_chart_data': json.dumps([None] * 8),  # NEW: Add default feedstock data
-            'time_labels': json.dumps(default_time_labels),
+            'expected_clean_gas': "?",
+            'actual_clean_gas': "?",
+            'expected_production': "?",
+            'actual_cbg_production': "?",
+            'hourly_feedstock': "?",
+            'feedstock_cost': "?",
+            'hourly_raw_biogas': "?",
+            'hourly_co2_savings': "?",
+            'power_consumption': "?",
+            'power_cost': "?",
+            'fom_bags': "?",
+            'running_hours': "?",
+            'stoppage_hours': "?",
+            # Chart data for 8-hour window
+            'expected_clean_gas_data': json.dumps(expected_clean_gas_data),
+            'actual_clean_gas_data': json.dumps(actual_clean_gas_data),
+            'expected_production_data': json.dumps(expected_production_data),
+            'actual_cbg_production_data': json.dumps(actual_cbg_production_data),
+            'biogas_chart_data': json.dumps(biogas_data),
+            'co2_chart_data': json.dumps(co2_data),
+            'feedstock_chart_data': json.dumps(feedstock_data),  # NEW: Add feedstock chart data
+            'time_labels': json.dumps(time_labels),
+            
+            # Window information
             'current_window': window_name,
-            'current_shift': current_shift if 'current_shift' in locals() else 'Unknown',
+            'current_shift': current_shift,
             'window_start_hour': window_start,
             'window_end_hour': window_end,
-            'total_reports_in_window': 0,
-            'hours_with_data': 0,
+            'total_reports_in_window': len(reports_in_window),
+            'hours_with_data': len(hourly_data),
         }
     
     return render(request, 'dashboard.html', context)
 
 
 # Additional utility function to get data for specific time range
+@login_required
 def get_reports_for_time_range(start_time, end_time):
     """
     Utility function to get reports for a specific time range
@@ -463,6 +582,7 @@ def get_reports_for_time_range(start_time, end_time):
 
 
 # Function to get data by shift
+@login_required
 def get_reports_by_shift(date, shift_name):
     """
     Utility function to get reports by shift name
@@ -472,15 +592,15 @@ def get_reports_by_shift(date, shift_name):
         shift=shift_name
     ).order_by('report_time')
 
+@login_required
 def feedstock_report(request):
-    
-    # Get filter parameters
-    day = request.GET.get('day')
-    this_month = request.GET.get('this_month')
+
     date = request.GET.get('date')
     month = request.GET.get('month')
     year = request.GET.get('year')
     shift = request.GET.get('shift')
+    filter_type = request.GET.get('filter_type')
+
     
     # Initialize variables
     report_data = []
@@ -491,9 +611,25 @@ def feedstock_report(request):
     labels = []
     selected_info = ""
     
+    today = timezone.localdate()
+    current_month = today.month
+    current_year = today.year
+
     # Initialize query
-    query = BiogasPlantReport.objects.all().order_by('date')
+    query = BiogasPlantReport.objects.all()
     print("________________------", query)
+    if filter_type == "day":
+        query = query.filter(date=today)
+    elif filter_type == "month":
+        query = query.filter(date__month=current_month, date__year=current_year)
+    else:
+        # Manual date/month/year filters
+        if date:
+            query = query.filter(date=date)
+        elif month and year:
+            query = query.filter(date__month=int(month), date__year=int(year))
+        elif year:
+            query = query.filter(date__year=int(year))    
     # Apply filters
     if date:
         # Filter by specific date
@@ -679,7 +815,7 @@ def feedstock_report(request):
     
     # Get shifts for dropdown
     shifts = BiogasPlantReport.objects.values('shift').distinct()
-    
+    print("Shifts", shifts)
     # Prepare chart data as JSON
     chart_data = {
         'feedstock': {
@@ -708,6 +844,7 @@ def feedstock_report(request):
 
 from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm
 
+@login_required
 def cost_entry_view(request):
     feed_form = FeedstockCostForm(prefix='feed')
     power_form = PowerCostForm(prefix='power')
@@ -783,6 +920,7 @@ def cost_entry_view(request):
 
 import json
 from datetime import date
+@login_required
 def report(request):
     # Start with all reports
     reports_query = BiogasPlantReport.objects.all()
@@ -890,7 +1028,7 @@ from datetime import datetime, timedelta
 import calendar
 from .models import BiogasPlantReport
 
-
+@login_required
 def running_hours(request):
     # Get the current year and past 5 years for the dropdown
     current_year = datetime.now().year
@@ -952,7 +1090,7 @@ def running_hours(request):
     
     return render(request, 'Runninghours.html', context)
 
-
+@login_required
 def process_daily_data(queryset):
     """Process data for daily view"""
     report_data = []
@@ -980,7 +1118,7 @@ def process_daily_data(queryset):
     
     return report_data
 
-
+@login_required
 def process_monthly_data(queryset, month, year):
     """Aggregate data by month"""
     # Get number of days in the month
@@ -1028,7 +1166,7 @@ def process_monthly_data(queryset, month, year):
         'bags_count': monthly_data['total_bags'] or 0
     }]
 
-
+@login_required
 def calculate_chart_data(queryset):
     """Calculate data for the running vs stoppage chart"""
     # Calculate total running and stoppage hours
@@ -1054,7 +1192,7 @@ class ReportViewset(ReadOnlyModelViewSet):
     filterset_fields = ['date', 'shift']
     ordering_fields = ['date', 'shift']
 
-
+@login_required
 def set_point_view(request):
     if request.method == 'POST':
         form = SetPointForm(request.POST)
@@ -1065,11 +1203,12 @@ def set_point_view(request):
         form = SetPointForm()
     return render(request, 'set_point.html', {'form': form})
 
-
+@login_required
 def set_point_list_view(request):
     set_points = SetPoint.objects.all()
     return render(request, 'list.html', {'set_points': set_points})
 
+@login_required
 def edit_set_point(request, id):
     point = get_object_or_404(SetPoint, id=id)
     if request.method == 'POST':
@@ -1081,7 +1220,9 @@ def edit_set_point(request, id):
         form = SetPointForm(instance=point)
     return render(request, 'list.html', {'form': form})
 
+@login_required
 def delete_set_point(request, id):
     point = get_object_or_404(SetPoint, id=id)
     point.delete()
     return redirect('set_point_list')
+

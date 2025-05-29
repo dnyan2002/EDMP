@@ -236,7 +236,7 @@
             <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
             <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
             <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
-            <button type="submit" name="filter_type" value="month" class="report-button"><i class="fas fa-calendar-month"></i> Month</button>
+            <button type="submit" name="filter_type" value="month" class="report-button"><i class="fas fa-calendar-alt"></i> Month</button>
             <button type="submit" name="filter_type" value="day" class="report-button"><i class="fas fa-calendar-day"></i> Day</button>
         </div>
     </form>
@@ -259,14 +259,8 @@
                 <tr>
                     <th>Date</th>
                     <th>Shift</th>
-                    <th>Feedstock Used (ton)</th>
-                    <th>Raw Biogas (nm³)</th>
-                    <th>Clean Gas (nm³)</th>
-                    <th>CBG Production (kg)</th>
-                    <th>Gas Purity (%)</th>
                     <th>Power Consumption (kWh)</th>
                     <th>Power Cost</th>
-                    <th>CO₂ Savings (MT)</th>
                     <th>Bags Count</th>
                 </tr>
             </thead>
@@ -275,14 +269,8 @@
                     <tr>
                         <td>{{ report.date|date:"d/m/Y" }}</td>
                         <td>{{ report.shift }}</td>
-                        <td>{{ report.feedstock_used_ton }}</td>
-                        <td>{{ report.raw_biogas_produced_nm3 }}</td>
-                        <td>{{ report.actual_clean_gas_nm3 }}</td>
-                        <td>{{ report.actual_cbg_production_kg }}</td>
-                        <td>{{ report.gas_purity_percent }}%</td>
                         <td>{{ report.power_consumption_kwh }}</td>
                         <td>{{ report.total_power_cost }}</td>
-                        <td>{{ report.co2_savings_mt }}</td>
                         <td>{{ report.fom_bag_count }}</td>
                     </tr>
                 {% empty %}
@@ -445,6 +433,7 @@
         doc.save('Biogas_Plant_Report.pdf');
     }
 </script>
+// Replace the Chart.js script section in your template with this improved version
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -452,52 +441,106 @@
         // Create the Power Consumption vs Power Cost chart
         const powerCtx = document.getElementById('powerChart').getContext('2d');
         
-        // Parse the monthly data from Django view
+        // Parse the monthly data from Django view with better error handling
         const monthlyData = [
             {% for data in monthly_data %}
                 {
-                    month: "{{ data.month }}",
-                    powerConsumption: {{ data.power_consumption|default:0 }},
-                    powerCost: {{ data.power_cost|default:0 }}
-                },
+                    month: "{{ data.month|escapejs }}",
+                    powerConsumption: {{ data.power_consumption|default:0|floatformat:2 }},
+                    powerCost: {{ data.power_cost|default:0|floatformat:2 }}
+                }{% if not forloop.last %},{% endif %}
+            {% empty %}
+                {
+                    month: "No Data",
+                    powerConsumption: 0,
+                    powerCost: 0
+                }
             {% endfor %}
         ];
         
         // Transform data into Chart.js format
         const months = monthlyData.map(data => data.month);
-        const powerConsumptionData = monthlyData.map(data => data.powerConsumption);
-        const powerCostData = monthlyData.map(data => data.powerCost);
+        const powerConsumptionData = monthlyData.map(data => parseFloat(data.powerConsumption) || 0);
+        const powerCostData = monthlyData.map(data => parseFloat(data.powerCost) || 0);
         
-        // Create the power chart
-        const powerChart = new Chart(powerCtx, {
+        // Destroy existing chart if it exists
+        if (window.powerChart instanceof Chart) {
+            window.powerChart.destroy();
+        }
+        
+        // Create the power chart with scatter plot option for individual points
+        window.powerChart = new Chart(powerCtx, {
             type: 'line',
             data: {
                 labels: months,
                 datasets: [{
                     label: 'Power Consumption (kWh)',
                     data: powerConsumptionData,
-                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.8)',
                     borderColor: 'rgba(255, 159, 64, 1)',
                     borderWidth: 2,
                     fill: false,
-                    yAxisID: 'y1'
+                    yAxisID: 'y1',
+                    tension: 0,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    showLine: true
                 }, {
                     label: 'Power Cost',
                     data: powerCostData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 2,
                     fill: false,
-                    yAxisID: 'y2'
+                    yAxisID: 'y2',
+                    tension: 0,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    showLine: true
                 }]
             },
             options: {
                 responsive: true,
                 interaction: {
-                    mode: 'index',
+                    mode: 'point',
                     intersect: false
                 },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Individual Data Points - Power Consumption vs Cost'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return 'Record: ' + context[0].label;
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y.toFixed(2);
+                                return label;
+                            }
+                        }
+                    }
+                },
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Records (Date-Shift)'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
                     y1: {
                         type: 'linear',
                         display: true,
@@ -525,56 +568,101 @@
             }
         });
         
-        // Create the Bags Generated per Hour chart
+        // Create the Bags Generated per Hour/Shift chart
         const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
         
-        // Parse the hourly data from Django view
+        // Parse the hourly data from Django view with better error handling
         const hourlyData = [
             {% for data in hourly_data %}
                 {
-                    hour: "{{ data.hour }}",
+                    hour: "{{ data.hour|escapejs }}",
                     bags: {{ data.bags|default:0 }}
-                },
+                }{% if not forloop.last %},{% endif %}
+            {% empty %}
+                {
+                    hour: "No Data",
+                    bags: 0
+                }
             {% endfor %}
         ];
         
         // Transform data into Chart.js format
         const hours = hourlyData.map(data => data.hour);
-        const bagsData = hourlyData.map(data => data.bags);
+        const bagsData = hourlyData.map(data => parseInt(data.bags) || 0);
         
-        // Create the hourly chart
-        const hourlyChart = new Chart(hourlyCtx, {
+        // Destroy existing chart if it exists
+        if (window.hourlyChart instanceof Chart) {
+            window.hourlyChart.destroy();
+        }
+        
+        // Create the bags chart with individual data points
+        window.hourlyChart = new Chart(hourlyCtx, {
             type: 'bar',
             data: {
                 labels: hours,
                 datasets: [{
                     label: 'Bags Generated',
                     data: bagsData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: hours.map((_, index) => 
+                        `hsla(${(index * 360 / hours.length)}, 70%, 60%, 0.8)`
+                    ),
+                    borderColor: hours.map((_, index) => 
+                        `hsla(${(index * 360 / hours.length)}, 70%, 50%, 1)`
+                    ),
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Individual Records - Bags Generated'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return 'Record: ' + context[0].label;
+                            },
+                            label: function(context) {
+                                return 'Bags: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: 'Number of Bags'
+                        },
+                        ticks: {
+                            stepSize: 1
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: 'Hour of Day'
+                            text: 'Individual Records (Date-Shift)'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     }
                 }
             }
         });
+        
+        // Debug information (remove in production)
+        console.log('Monthly Data:', monthlyData);
+        console.log('Hourly Data:', hourlyData);
+        console.log('Charts initialized successfully');
     });
 </script>
 {% endblock %}
-```
