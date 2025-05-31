@@ -50,6 +50,17 @@ class CustomUserCreationForm(UserCreationForm):
             'status'
         ]
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        qs = CustomUser.objects.filter(username=username)
+
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError("A user with that username already exists.")
+        return username
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.full_name = self.cleaned_data['full_name']

@@ -1,4 +1,5 @@
-import requests
+import json
+import calendar
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout 
@@ -6,28 +7,22 @@ from django.urls import reverse
 from django.contrib.messages import success
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-import matplotlib
-matplotlib.use('agg')
-from .forms import CustomUserCreationForm
 from .models import *
 from .permissions import role_required
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from .serializers import PIDDataSerializer, ReportSerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import logging
 from collections import defaultdict
-from .forms import (
-        FeedstockCostForm, PowerCostForm, 
-        CBGSaleDispatchForm, FOMSaleDispatchForm, BiogasPlantReportForm,
-        CleanGasProductionForm, CBGProductionForm, SetPointForm
-    )
-import random
+from .forms import *
 from datetime import datetime
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from django.db.models import Sum
+from django.db.models import Sum, Avg, Max, Min, Count
+from datetime import datetime, timedelta, date
+from django.utils import timezone
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -45,11 +40,6 @@ def logout_view(request):
     logout(request)
     return redirect(reverse('login'))
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from datetime import timedelta
-from collections import defaultdict
 
 class DataWrapper:
     """Wrapper class to handle data display logic with formatting"""
@@ -172,7 +162,7 @@ def create_user(request):
         if form.is_valid():
             try:
                 user = form.save()
-                # messages.success(request, f'User {user.username} created successfully!')
+                messages.success(request, f'User {user.username} created successfully!')
                 return redirect('create_user')  # Redirect back to the same page
             except Exception as e:
                 messages.error(request, f'Error creating user: {str(e)}')
@@ -184,7 +174,8 @@ def create_user(request):
     
     return render(request, 'user.html', {
         'form': form, 
-        'users': users
+        'users': users,
+        'editing': False
     })
 
 @login_required
@@ -194,15 +185,41 @@ def delete_user(request, user_id):
     if request.user == user:
         messages.error(request, "You can't delete yourself.")
         return redirect('create_user')
-
     try:
         user.delete()
-        # messages.success(request, f'User {user.username} deleted successfully.')
+        messages.success(request, f'User {user.username} deleted successfully.')
     except Exception as e:
         messages.error(request, f'Error deleting user: {str(e)}')
     return redirect('create_user')
 
-logger = logging.getLogger(__name__)
+@login_required
+def edit_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'User {user.username} updated successfully.')
+            return redirect('create_user')
+    else:
+        form = CustomUserCreationForm(instance=user)
+
+    try:
+        users = CustomUser.objects.all()
+    except Exception as e:
+        users = []
+        messages.error(request, f'Error fetching users: {str(e)}')
+
+    context = {
+        'form': form,
+        'users': users,
+        'editing': True,
+        'edit_user_id': user.id,
+    }
+    return render(request, 'user.html', context)
+
+
 
 class PIDDataViewSet(viewsets.ModelViewSet):
     """
@@ -215,29 +232,13 @@ class PIDDataViewSet(viewsets.ModelViewSet):
         """
         Custom create method to receive and process PID data directly.
         """
-        logger.info(f"Received API Data: {request.data}")  # Log incoming data
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            logger.info("PID Data successfully stored")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            logger.error(f"PID Data validation error: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# def powerconsumption_report(request):
-#     return render(request, 'powerconsumption_report.html')
-
-from django.shortcuts import render
-from django.db.models import Sum, Avg, Max, Min
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from .models import BiogasPlantReport
-from django.shortcuts import render
-from django.db.models import Avg, Sum, Count
-from datetime import datetime, timedelta
-from django.utils import timezone
 
 @login_required
 def powerconsumption_report(request):
@@ -365,90 +366,60 @@ def biogas_report_json(request):
 
     return JsonResponse({'reports': data})
 
-@login_required
+
 def dashboard(request):
-    from datetime import datetime, timedelta
-    from django.utils import timezone
-    import json
-    
-    # Get the current time
     now = timezone.localtime()
-    print("Now time", now)
     today = now.date()
-    print("today", today)
-    
-    # Option 1: Use shift-based approach
-    # Determine current shift based on time
+    one_hour_ago = now - timedelta(hours=1)
+
+    # Determine current shift and time window
     current_hour = now.hour
     if current_hour < 8:
         current_shift = "Night Shift"
         window_start = 0
         window_name = "Night Shift (00:00 - 08:00)"
     elif current_hour < 16:
-        current_shift = "General Shift"  # or "Day Shift"
+        current_shift = "General Shift"
         window_start = 8
         window_name = "Day Shift (08:00 - 16:00)"
     else:
         current_shift = "Evening Shift"
         window_start = 16
         window_name = "Evening Shift (16:00 - 24:00)"
-    
+
     window_end = window_start + 8
-    
-    # Create datetime boundaries for the current 8-hour window
+
     window_start_time = timezone.make_aware(
         datetime.combine(today, datetime.min.time()) + timedelta(hours=window_start)
     )
-    print("Window start time", window_start_time)
     window_end_time = timezone.make_aware(
         datetime.combine(today, datetime.min.time()) + timedelta(hours=window_end)
     )
-    print("Window end time", window_end_time)
-    # Method 1: Get reports by time window (recommended)
+
+    # Reports in window
     reports_in_window = BiogasPlantReport.objects.filter(
         date=today,
-        report_time__gte=window_start_time,
-        report_time__lt=window_end_time
+        shift=current_shift
     ).order_by('report_time')
-    print("Reports in Window", reports_in_window)
-    # # Method 2: Alternative - Get reports by shift (if you prefer shift-based filtering)
-    # reports_in_window = BiogasPlantReport.objects.filter(
-    #     date=today,
-    #     shift=current_shift
-    # ).order_by('report_time')
-    print("Reports in Window", reports_in_window)
-    previous_hour_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
-    previous_hour_end = previous_hour_start + timedelta(hours=1)
 
-    print("Previous hour window:", previous_hour_start, "to", previous_hour_end)
+    # Current latest report (used for expected values)
+    current_report = BiogasPlantReport.objects.order_by('-date', '-report_time').first()
 
-    # Step 2: Only proceed if this 1-hour window is within the current shift window
-    if window_start_time <= previous_hour_start < window_end_time:
-        print("Its inside the current shift window")
-        previous_hour_report = reports_in_window.filter(
-            report_time__gte=previous_hour_start,
-            report_time__lt=previous_hour_end
-        ).order_by('-report_time')
-        print("Previous hour report:", previous_hour_report)
-        print("Window Start time", window_start_time)
-        print("Window End time", window_end_time)
-    else:
-        previous_hour_report = None
+    # Use RawSQL to get report from last 1 hour
+    previous_hour_report = BiogasPlantReport.objects.extra(
+        where=["report_time BETWEEN %s AND %s"],
+        params=[one_hour_ago, now]
+    ).order_by('-report_time').first()
 
-    # Create hourly data structure
+    # Group reports by hour
     hourly_data = {}
-    
-    # Group reports by hour within the window
     for report in reports_in_window:
         if report.report_time:
             report_hour = report.report_time.hour
-            print("report Hour", report_hour)
-            # If multiple reports exist for the same hour, keep the latest one
             if report_hour not in hourly_data or report.report_time > hourly_data[report_hour].report_time:
                 hourly_data[report_hour] = report
-                print("actual report", report)
-    
-    # Prepare chart data arrays
+
+    # Chart data
     time_labels = []
     expected_clean_gas_data = []
     actual_clean_gas_data = []
@@ -456,47 +427,39 @@ def dashboard(request):
     actual_cbg_production_data = []
     biogas_data = []
     co2_data = []
-    feedstock_data = []  # NEW: Add feedstock data array
-    
-    # Get expected values for straight lines (from most recent report)
-    if previous_hour_report:
-        expected_clean_gas_value = float(previous_hour_report.expected_clean_gas_nm3)
-        expected_production_value = float(previous_hour_report.expected_production_kg)
+    feedstock_data = []
+
+    if current_report:
+        expected_clean_gas_value = float(current_report.expected_clean_gas_nm3)
+        expected_production_value = float(current_report.expected_production_kg)
     else:
         expected_clean_gas_value = 0
         expected_production_value = 0
-    print("Previous >>>>>>>>>>>------------", previous_hour_report)
-    # Generate data for each hour in the 8-hour window
+
     for hour_offset in range(8):
         hour = window_start + hour_offset
         time_labels.append(f"{hour:02d}:00")
-        
-        # Expected values are constant (straight lines)
         expected_clean_gas_data.append(expected_clean_gas_value)
         expected_production_data.append(expected_production_value)
-        print(hour)
+
         if hour in hourly_data:
-            print("Its a hour", hour)
-            # Data exists for this hour
             report = hourly_data[hour]
-            print("Report", report)
             actual_clean_gas_data.append(float(report.actual_clean_gas_nm3))
             actual_cbg_production_data.append(float(report.actual_cbg_production_kg))
             biogas_data.append(float(report.raw_biogas_produced_nm3))
             co2_data.append(float(report.co2_savings_mt))
-            feedstock_data.append(float(report.feedstock_used_ton))  # NEW: Add feedstock data
+            feedstock_data.append(float(report.feedstock_used_ton))
         else:
-            # No data for this hour - null values create gaps in line charts
             actual_clean_gas_data.append(None)
             actual_cbg_production_data.append(None)
             biogas_data.append(None)
             co2_data.append(None)
-            feedstock_data.append(None)  # NEW: Add null feedstock data
+            feedstock_data.append(None)
 
+    # Status Cards Context
     if previous_hour_report:
         running_hours = previous_hour_report.running_time.total_seconds() / 3600
         stoppage_hours = previous_hour_report.stoppage_time.total_seconds() / 3600
-
         context = {
             'expected_clean_gas': previous_hour_report.expected_clean_gas_nm3,
             'actual_clean_gas': previous_hour_report.actual_clean_gas_nm3,
@@ -511,24 +474,6 @@ def dashboard(request):
             'fom_bags': previous_hour_report.fom_bag_count or 0,
             'running_hours': running_hours,
             'stoppage_hours': stoppage_hours,
-            
-            # Chart data for 8-hour window
-            'expected_clean_gas_data': json.dumps(expected_clean_gas_data),
-            'actual_clean_gas_data': json.dumps(actual_clean_gas_data),
-            'expected_production_data': json.dumps(expected_production_data),
-            'actual_cbg_production_data': json.dumps(actual_cbg_production_data),
-            'biogas_chart_data': json.dumps(biogas_data),
-            'co2_chart_data': json.dumps(co2_data),
-            'feedstock_chart_data': json.dumps(feedstock_data),  # NEW: Add feedstock chart data
-            'time_labels': json.dumps(time_labels),
-            
-            # Window information
-            'current_window': window_name,
-            'current_shift': current_shift,
-            'window_start_hour': window_start,
-            'window_end_hour': window_end,
-            'total_reports_in_window': len(reports_in_window),
-            'hours_with_data': len(hourly_data),
         }
     else:
         context = {
@@ -545,52 +490,28 @@ def dashboard(request):
             'fom_bags': "?",
             'running_hours': "?",
             'stoppage_hours': "?",
-            # Chart data for 8-hour window
-            'expected_clean_gas_data': json.dumps(expected_clean_gas_data),
-            'actual_clean_gas_data': json.dumps(actual_clean_gas_data),
-            'expected_production_data': json.dumps(expected_production_data),
-            'actual_cbg_production_data': json.dumps(actual_cbg_production_data),
-            'biogas_chart_data': json.dumps(biogas_data),
-            'co2_chart_data': json.dumps(co2_data),
-            'feedstock_chart_data': json.dumps(feedstock_data),  # NEW: Add feedstock chart data
-            'time_labels': json.dumps(time_labels),
-            
-            # Window information
-            'current_window': window_name,
-            'current_shift': current_shift,
-            'window_start_hour': window_start,
-            'window_end_hour': window_end,
-            'total_reports_in_window': len(reports_in_window),
-            'hours_with_data': len(hourly_data),
         }
-    
+
+    # Add chart data and metadata to context
+    context.update({
+        'expected_clean_gas_data': json.dumps(expected_clean_gas_data),
+        'actual_clean_gas_data': json.dumps(actual_clean_gas_data),
+        'expected_production_data': json.dumps(expected_production_data),
+        'actual_cbg_production_data': json.dumps(actual_cbg_production_data),
+        'biogas_chart_data': json.dumps(biogas_data),
+        'co2_chart_data': json.dumps(co2_data),
+        'feedstock_chart_data': json.dumps(feedstock_data),
+        'time_labels': json.dumps(time_labels),
+        'current_window': window_name,
+        'current_shift': current_shift,
+        'window_start_hour': window_start,
+        'window_end_hour': window_end,
+        'total_reports_in_window': len(reports_in_window),
+        'hours_with_data': len(hourly_data),
+    })
+
     return render(request, 'dashboard.html', context)
 
-
-# Additional utility function to get data for specific time range
-@login_required
-def get_reports_for_time_range(start_time, end_time):
-    """
-    Utility function to get reports for a specific time range
-    """
-    data = BiogasPlantReport.objects.filter(
-        report_time__gte=start_time,
-        report_time__lt=end_time
-    ).order_by('report_time')
-    print(data)
-    return data
-
-
-# Function to get data by shift
-@login_required
-def get_reports_by_shift(date, shift_name):
-    """
-    Utility function to get reports by shift name
-    """
-    return BiogasPlantReport.objects.filter(
-        date=date,
-        shift=shift_name
-    ).order_by('report_time')
 
 @login_required
 def feedstock_report(request):
@@ -617,7 +538,6 @@ def feedstock_report(request):
 
     # Initialize query
     query = BiogasPlantReport.objects.all()
-    print("________________------", query)
     if filter_type == "day":
         query = query.filter(date=today)
     elif filter_type == "month":
@@ -815,7 +735,6 @@ def feedstock_report(request):
     
     # Get shifts for dropdown
     shifts = BiogasPlantReport.objects.values('shift').distinct()
-    print("Shifts", shifts)
     # Prepare chart data as JSON
     chart_data = {
         'feedstock': {
@@ -842,7 +761,6 @@ def feedstock_report(request):
         'selected_shift': shift
     })
 
-from .forms import FeedstockCostForm, PowerCostForm, CBGSaleDispatchForm
 
 @login_required
 def cost_entry_view(request):
@@ -918,8 +836,6 @@ def cost_entry_view(request):
         'expected_cleangas_entries': expected_cleangas_entries,
     })
 
-import json
-from datetime import date
 @login_required
 def report(request):
     # Start with all reports
@@ -1021,12 +937,6 @@ def report(request):
     
     return render(request, 'report.html', context)
 
-from django.shortcuts import render
-from django.db.models import Sum, F, ExpressionWrapper, fields, Avg
-from django.db.models.functions import ExtractMonth, ExtractYear
-from datetime import datetime, timedelta
-import calendar
-from .models import BiogasPlantReport
 
 @login_required
 def running_hours(request):
@@ -1225,4 +1135,3 @@ def delete_set_point(request, id):
     point = get_object_or_404(SetPoint, id=id)
     point.delete()
     return redirect('set_point_list')
-

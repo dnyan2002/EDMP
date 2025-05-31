@@ -21,6 +21,7 @@ urlpatterns = [
     path('powerconsumption-report/', views.powerconsumption_report, name='powerconsumption_report'),
     path('create/', views.create_user, name='create_user'),
     path('users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('users/edit/<int:user_id>/', views.edit_user, name='edit_user'),
     path('bags-generator-report/', views.bagsgenerated_report, name='bagsgenerar_report'),
     path('biogas-reports/', views.biogas_report_json, name='biogas-report-json'),
     path('api/', include(router.urls), name="route_urls"),

@@ -207,7 +207,7 @@ class PIDData(models.Model):
 
 
 class BiogasPlantReport(models.Model):
-    date = models.DateField(auto_now=True)  
+    date = models.DateField()  # Removed auto_now=True
     report_time = models.DateTimeField(null=True, blank=True)
     feedstock_used_ton = models.FloatField()
     feedstock_cost_per_ton = models.FloatField(null=True, blank=True)
@@ -215,7 +215,7 @@ class BiogasPlantReport(models.Model):
 
     raw_biogas_produced_nm3 = models.FloatField()
     methane_content_percent = models.FloatField()
-    
+
     expected_clean_gas_nm3 = models.FloatField()
     actual_clean_gas_nm3 = models.FloatField()
     purification_loss_nm3 = models.FloatField()
@@ -240,7 +240,8 @@ class BiogasPlantReport(models.Model):
     stoppage_time = models.DurationField()
     shift = models.CharField(max_length=20, choices=[
         ('General Shift', 'General Shift'),
-        ('Night Shift', 'Night Shift')
+        ('Night Shift', 'Night Shift'),
+        ('Evening Shift', 'Evening Shift'),  # Added
     ], default='General Shift')
 
     def __str__(self):
