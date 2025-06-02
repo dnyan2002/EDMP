@@ -29,7 +29,7 @@ class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=50, verbose_name="Full Name")
     company_name = models.CharField(max_length=70, verbose_name="Company Name")
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, verbose_name="Role", related_name="users")
-    plant = models.ForeignKey(Plant,on_delete=models.CASCADE, verbose_name=Plant, default=1)
+    plant = models.ForeignKey(Plant,on_delete=models.CASCADE, verbose_name=Plant, null=True, blank=True)
     groups = models.ManyToManyField(Group, blank=True, related_name="customuser_groups")  # Fix conflict
     user_permissions = models.ManyToManyField(Permission, blank=True, related_name="customuser_permissions")
     status = models.CharField(max_length=10, choices=[('Active', 'Active'), ('Inactive', 'Inactive')], default='Active')

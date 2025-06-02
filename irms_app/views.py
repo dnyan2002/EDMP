@@ -84,7 +84,7 @@ def home(request):
     # Check for data within the last 10 minutes
     ten_minutes_ago = timezone.now() - timedelta(minutes=10)
     recent_data = PIDData.objects.filter(created_at__gte=ten_minutes_ago).last()
-    
+    print(recent_data)
     # Use recent data if available, otherwise use latest data
     latest_data = recent_data if recent_data else PIDData.objects.last()
     
@@ -98,31 +98,45 @@ def home(request):
     crusher1_total = defaultdict(float)
     for entry in PIDData.objects.all():
         day = entry.created_at.date()
-        crusher1_total[day] += entry.crusher1_naphier_tph
+        value = 0.0 if entry.crusher1_naphier_tph is None else entry.crusher1_naphier_tph
+        crusher1_total[day] += value
+        print(crusher1_total[day])
     
     # Apply "?" logic to totals if data is not recent
     if is_data_recent:
-        crusher1_total = [{"day": day, "total_crusher": f"{total:.2f}"} for day, total in crusher1_total.items()]
+        today = timezone.now().date()
+        crusher1_total = [
+            {"day": day, "total_crusher": f"{total:.2f}"}
+            for day, total in crusher1_total.items() if day == today
+        ]
     else:
         crusher1_total = [{"day": day, "total_crusher": "?"} for day, total in crusher1_total.items()]
     
     crusher2_total = defaultdict(float)
     for entry in PIDData.objects.all():
         day = entry.created_at.date()
-        crusher2_total[day] += entry.crusher2_naphier_tph
+        value = 0.0 if entry.crusher2_naphier_tph is None else entry.crusher2_naphier_tph
+        crusher2_total[day] += value
     
     if is_data_recent:
-        crusher2_total = [{"day": day, "total_crusher": f"{total:.2f}"} for day, total in crusher2_total.items()]
+        crusher2_total = [
+            {"day": day, "total_crusher": f"{total:.2f}"}
+            for day, total in crusher2_total.items() if day == today
+        ]
     else:
         crusher2_total = [{"day": day, "total_crusher": "?"} for day, total in crusher2_total.items()]
     
     fom_bag_total = defaultdict(float)
     for entry in PIDData.objects.all():
         day = entry.created_at.date()
-        fom_bag_total[day] += entry.bagging_unit
+        value = 0.0 if entry.bagging_unit is None else entry.bagging_unit
+        fom_bag_total[day] += value
     
     if is_data_recent:
-        fom_bag_total = [{"day": day, "fom_bag_total": f"{total:.0f}"} for day, total in fom_bag_total.items()]
+        fom_bag_total = [
+            {"day": day, "fom_bag_total": f"{total:.0f}"}
+            for day, total in fom_bag_total.items() if day == today
+        ]
     else:
         fom_bag_total = [{"day": day, "fom_bag_total": "?"} for day, total in fom_bag_total.items()]
     
