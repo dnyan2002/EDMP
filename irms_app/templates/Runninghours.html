@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Global Styles */
+    body {
+        font-family: Arial, sans-serif;
+        padding-bottom: 60px;
+    }
+
+    /* Form Container */
+    .report-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px auto;
+        padding: 30px;
+        border: 1px solid #ccc;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        max-width: 1200px;
+    }
+
+    /* Form Fields */
+    .form-group {
+        flex: 1 1 200px;
+        margin: 0 10px 15px 10px;
+        min-width: 150px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-group select,
+    .form-group input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Button Group */
+    .button-group {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    /* Button Styles */
+    .report-button,
+    .excel-button,
+    .pdf-button {
+        background-color: #062A63;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover,
+    .report-button:hover,
+    .excel-button:hover,
+    .pdf-button:hover {
+        background-color: #045191;
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table thead th {
+        background-color: #02366e;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+    }
+
+    .data-table tbody td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .data-table tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: #e0f7fa;
+    }
+
+    /* Scrollable Table Container */
+    #resultsContainer {
+        max-height: 400px;
+        overflow: auto;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        width: 97.4%;
+        margin: 20px auto;
+        margin-top: 70px;
+    }
+
+    /* Chart Section */
+    #graphcontainer {
+        width: 90%;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+        position: relative;
+        min-height: 400px;
+        height:280px;
+    }
+
+
+    canvas {
+        margin-bottom: 20px;
+    }
+
+    .summary {
+        font-size: 16px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+        margin-bottom: 20px; /* Add bottom margin */
+        flex-wrap: wrap; /* Allow wrapping if needed */
+        gap: 15px; /* Space between items */
+    }
+
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+        .form-group {
+            flex: 100%;
+            margin: 10px 0;
+        }
+
+        .data-table {
+            font-size: 12px;
+        }
+
+        .data-table tbody td {
+            padding: 8px;
+        }
+
+        .data-table thead th {
+            padding: 10px;
+        }
+
+        #graphcontainer {
+            width: 100%;
+            height: 350px;
+        }
+    }
+</style>
+
+<div class="container">
+    <form class="report-form" id="filterForm" method="GET">
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" class="form-control" 
+                   onfocus="this.form.month.disabled=true; this.form.year.disabled=true;"
+                   onblur="if(!this.value) { this.form.month.disabled=false; this.form.year.disabled=false; }">
+        </div>
+        
+        <div class="form-group">
+            <label for="month"><b>Month</b></label>
+            <select id="month" name="month" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.year.value) { this.form.date.disabled=false; }">
+                <option value="">Select Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="year"><b>Year</b></label>
+            <select id="year" name="year" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.month.value) { this.form.date.disabled=false; }">
+                <option value="">Select Year</option>
+                {% for yr in years %}
+                <option value="{{ yr }}">{{ yr }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group" id="shift-group"> 
+            <label for="shift">Shift</label> 
+            <select id="shift" name="shift" class="form-control"> 
+                <option value="">Select Shift</option>
+                <option value="General Shift" {% if selected_shift == "General Shift" %}selected{% endif %}>General Shift</option>
+                <option value="Night Shift" {% if selected_shift == "Night Shift" %}selected{% endif %}>Night Shift</option>
+            </select> 
+        </div>
+        
+        <div class="button-group">
+            <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
+            <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
+            <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
+        </div>
+    </form>
+
+    <div id="graphcontainer">
+        <h2>Machine Running vs Stoppage Hours</h2>
+        <canvas id="machineChart" height="200" ></canvas>
+    
+        <div class="summary">
+            <p><span style="color:green;">Total Running Hours:</span> 
+                {{ chart_data.total_running|floatformat:2 }} hrs</p>
+            <p><span style="color:red;">Total Stoppage Hours:</span> 
+                {{ chart_data.total_stoppage|floatformat:2 }} hrs</p>
+        </div>
+    </div>
+    
+    <!-- Display area for results -->
+    <div id="resultsContainer">
+        <table class="data-table">    
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Running Hours</th>
+                    <th>Stoppage Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in report_data %}
+                    <tr>
+                        <td>{{ report.date|date:"d/m/Y" }}</td>
+                        <td>{{ report.shift }}</td>
+                        <td>{{ report.running_hours }}</td>
+                        <td>{{ report.stoppage_hours }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">No data found for the selected filters.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Field toggle logic
+        function toggleFields() {
+            const dateInput = document.getElementById("date");
+            const monthSelect = document.getElementById("month");
+            const yearSelect = document.getElementById("year");
+            
+            if (dateInput.value) {
+                monthSelect.disabled = true;
+                yearSelect.disabled = true;
+                monthSelect.value = ""; 
+                yearSelect.value = ""; 
+            } else if (monthSelect.value && yearSelect.value) {
+                dateInput.disabled = true;
+                dateInput.value = ""; 
+            } else {
+                dateInput.disabled = false;
+                monthSelect.disabled = false;
+                yearSelect.disabled = false;
+            }
+        }
+
+        // Initial toggle state check
+        toggleFields();
+
+        // Event Listeners
+        $("#date, #month, #year").on("change", toggleFields);
+    });
+
+    function exportToExcel() {
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const excelData = [];
+        const rows = reportTable.querySelectorAll("thead tr, tbody tr");
+
+        rows.forEach((row, index) => {
+            const rowData = [];
+            row.querySelectorAll("th, td").forEach(cell => {
+                rowData.push(cell.textContent.trim());
+            });
+            excelData.push(rowData);
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+        worksheet["!cols"] = [
+            { wch: 12 }, // Date
+            { wch: 12 }, // Shift
+            { wch: 15 }, // Running Hours
+            { wch: 15 }, // Stoppage Hours
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Running Hours Report');
+        XLSX.writeFile(workbook, 'Running_Hours_Report.xlsx');
+    }
+
+    function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4');
+
+        doc.setFontSize(14);
+        doc.setTextColor(0, 51, 102);
+        doc.text("Machine Running Hours Report", 14, 15);
+
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const rows = Array.from(reportTable.querySelectorAll("tbody tr"));
+        if (rows.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        const pdfData = rows.map(row => 
+            Array.from(row.querySelectorAll("td")).map(cell => cell.textContent.trim())
+        );
+
+        const headers = [
+            Array.from(reportTable.querySelectorAll("thead th")).map(th => th.textContent.trim())
+        ];
+
+        doc.autoTable({
+            head: headers,
+            body: pdfData,
+            startY: 25,
+            theme: 'striped',
+            styles: {
+                fontSize: 10,
+                cellPadding: 3,
+                halign: 'center',
+                overflow: 'linebreak',
+            },
+            headStyles: {
+                fillColor: [0, 51, 102],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold',
+                halign: 'center',
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240]
+            },
+            margin: { top: 25, left: 10, right: 10 },
+            pageBreak: 'auto',
+        });
+        
+        doc.save('Running_Hours_Report.pdf');
+    }
+</script>
+
+<!-- Updated Chart.js script for stacked bar chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('machineChart').getContext('2d');
+
+    // Get chart data from Django context
+    const chartLabels = {{ chart_data.labels|safe }};
+    const runningHoursData = {{ chart_data.running_hours|safe }};
+    const stoppageHoursData = {{ chart_data.stoppage_hours|safe }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'Running Hours',
+                    data: runningHoursData,
+                    backgroundColor: 'rgba(34, 139, 34, 0.8)', // Green
+                    borderColor: 'rgba(34, 139, 34, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Stoppage Hours',
+                    data: stoppageHoursData,
+                    backgroundColor: 'rgba(220, 20, 60, 0.8)', // Red
+                    borderColor: 'rgba(220, 20, 60, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: 24,
+                    title: {
+                        display: true,
+                        text: 'Hours'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        afterBody: function(tooltipItems) {
+                            let sum = 0;
+                            tooltipItems.forEach(function(tooltipItem) {
+                                sum += tooltipItem.parsed.y;
+                            });
+                            return 'Total: ' + sum.toFixed(2) + ' hours';
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+</script>
+{% endblock %}

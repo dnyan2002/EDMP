@@ -1,0 +1,666 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Global Styles */
+    body {
+        font-family: Arial, sans-serif;
+        padding-bottom: 60px; /* Ensure content doesn't overlap with footer */
+    }
+
+    /* Form Container */
+    .report-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px auto;
+        padding: 30px;
+        border: 1px solid #ccc;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        max-width: 1200px;
+    }
+
+    /* Form Fields */
+    .form-group {
+        flex: 1;
+        margin: 0 10px 15px 10px;
+        min-width: 150px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-group select,
+    .form-group input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Specific Field Adjustments */
+    #status-group {
+        flex: 0.5;
+        max-width: 100px;
+    }
+
+    #model-group {
+        flex: 2;
+        max-width: 400px;
+    }
+
+    /* Button Group */
+    .button-group {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    /* Button Styles */
+    .report-button,
+    .excel-button,
+    .pdf-button {
+        background-color: #062A63;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover,
+    .report-button:hover,
+    .excel-button:hover,
+    .pdf-button:hover {
+        background-color: #045191;
+    }
+
+    /* Report Container */
+    .report-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table thead th {
+        background-color: #02366e;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+    }
+
+    .data-table tbody td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Alternate Row Coloring */
+    .data-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .data-table tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: #e0f7fa;
+    }
+
+    /* Scrollable Table Container */
+    #resultsContainer {
+        max-height: 400px;
+        overflow: auto;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        width: 97.4%;
+        margin: 20px auto;
+    }
+
+    /* Chart Section */
+    .left-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 10px;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+        .form-group {
+            flex: 100%;
+            margin: 10px 0;
+        }
+
+        .data-table {
+            font-size: 12px;
+        }
+
+        .data-table tbody td {
+            padding: 8px;
+        }
+
+        .data-table thead th {
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="container">
+    <form class="report-form" id="filterForm" method="GET">
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" class="form-control" 
+                   onfocus="this.form.month.disabled=true; this.form.year.disabled=true;"
+                   onblur="if(!this.value) { this.form.month.disabled=false; this.form.year.disabled=false; }">
+        </div>
+        
+        <div class="form-group">
+            <label for="month"><b>Month</b></label>
+            <select id="month" name="month" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.year.value) { this.form.date.disabled=false; }">
+                <option value="">Select Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="year"><b>Year</b></label>
+            <select id="year" name="year" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.month.value) { this.form.date.disabled=false; }">
+                <option value="">Select Year</option>
+                {% for yr in years %}
+                <option value="{{ yr }}">{{ yr }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group" id="shift-group"> 
+            <label for="shift">Shift</label> 
+            <select id="shift" name="shift" class="form-control"> 
+                <option value="">Select Shift</option>
+                <option value="General Shift" {% if selected_shift == "General Shift" %}selected{% endif %}>General Shift</option>
+                <option value="Night Shift" {% if selected_shift == "Night Shift" %}selected{% endif %}>Night Shift</option>
+            </select> 
+        </div>
+        
+        <div class="button-group">
+            <button type="submit" id="generateReportButton" class="report-button"><i class="fas fa-file-alt"></i> Generate Report</button>
+            <button type="button" onclick="exportToExcel()" class="excel-button"><i class="fas fa-file-excel"></i> Download Excel</button>
+            <button type="button" onclick="exportToPDF()" class="pdf-button"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button type="submit" name="filter_type" value="month" class="report-button"><i class="fas fa-calendar-alt"></i> Month</button>
+            <button type="submit" name="filter_type" value="day" class="report-button"><i class="fas fa-calendar-day"></i> Day</button>
+        </div>
+    </form>
+
+    <div class="report-container">
+        <div class="left-section">
+            <h3>Power Consumption vs Power Cost</h3>
+            <canvas id="powerChart" width="400" height="200"></canvas>
+        </div>
+        <div class="left-section">
+            <h3>Bags Generated per Hour</h3>
+            <canvas id="hourlyChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Display area for results -->
+    <div id="resultsContainer">
+        <table class="data-table">    
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Power Consumption (kWh)</th>
+                    <th>Power Cost</th>
+                    <th>Bags Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in report_data %}
+                    <tr>
+                        <td>{{ report.date|date:"d/m/Y" }}</td>
+                        <td>{{ report.shift }}</td>
+                        <td>{{ report.power_consumption_kwh }}</td>
+                        <td>{{ report.total_power_cost }}</td>
+                        <td>{{ report.fom_bag_count }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="11">No data found for the selected filters.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Field toggle logic
+        function toggleFields() {
+            const dateInput = document.getElementById("date");
+            const monthSelect = document.getElementById("month");
+            const yearSelect = document.getElementById("year");
+            
+            if (dateInput.value) {
+                monthSelect.disabled = true;
+                yearSelect.disabled = true;
+                monthSelect.value = ""; 
+                yearSelect.value = ""; 
+            } else if (monthSelect.value && yearSelect.value) {
+                dateInput.disabled = true;
+                dateInput.value = ""; 
+            } else {
+                dateInput.disabled = false;
+                monthSelect.disabled = false;
+                yearSelect.disabled = false;
+            }
+        }
+
+        // Initial toggle state check
+        toggleFields();
+
+        // Event Listeners
+        $("#date, #month, #year").on("change", toggleFields);
+    });
+
+    function exportToExcel() {
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const excelData = [];
+        const rows = reportTable.querySelectorAll("thead tr, tbody tr");
+
+        // Extract data from table rows
+        rows.forEach((row, index) => {
+            const rowData = [];
+            row.querySelectorAll("th, td").forEach(cell => {
+                rowData.push(cell.textContent.trim());
+            });
+            excelData.push(rowData);
+        });
+
+        // Create a worksheet and add data
+        const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+        // Adjust column widths for better visibility
+        worksheet["!cols"] = [
+            { wch: 12 }, // Date
+            { wch: 12 }, // Shift
+            { wch: 15 }, // Feedstock Used
+            { wch: 15 }, // Raw Biogas
+            { wch: 15 }, // Clean Gas
+            { wch: 15 }, // CBG Production
+            { wch: 12 }, // Gas Purity
+            { wch: 20 }, // Power Consumption
+            { wch: 15 }, // Power Cost
+            { wch: 15 }, // CO2 Savings
+            { wch: 12 }  // Bags Count
+        ];
+
+        // Create a workbook and append the worksheet
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Biogas Report');
+
+        // Save the workbook as an Excel file
+        XLSX.writeFile(workbook, 'Biogas_Plant_Report.xlsx');
+    }
+
+    function exportToPDF() {
+        // Load jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Initialize a new PDF document
+        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape mode for wider tables
+
+        // Set the title for the PDF
+        doc.setFontSize(14);
+        doc.setTextColor(0, 51, 102); // Dark blue color
+        doc.text("Biogas Plant Report", 14, 15);
+
+        // Extract data from the table
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const rows = Array.from(reportTable.querySelectorAll("tbody tr"));
+        if (rows.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        const pdfData = rows.map(row => 
+            Array.from(row.querySelectorAll("td")).map(cell => cell.textContent.trim())
+        );
+
+        // Define the headers for the PDF table
+        const headers = [
+            Array.from(reportTable.querySelectorAll("thead th")).map(th => th.textContent.trim())
+        ];
+
+        // Use autoTable to create the table in PDF
+        doc.autoTable({
+            head: headers,
+            body: pdfData,
+            startY: 25, // Start table below the title
+            theme: 'striped', // Use striped theme for better readability
+            styles: {
+                fontSize: 7, // Smaller font size to fit more data
+                cellPadding: 2, // Reduce padding for a tighter layout
+                halign: 'center', // Center-align text
+                overflow: 'linebreak', // Wrap text within the cell
+            },
+            headStyles: {
+                fillColor: [0, 51, 102], // Dark blue header background
+                textColor: [255, 255, 255], // White text in headers
+                fontSize: 8, // Slightly larger font for headers
+                fontStyle: 'bold', // Bold header text
+                halign: 'center', // Center-align header text
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240] // Light gray alternating rows
+            },
+            margin: { top: 25, left: 10, right: 10 }, // Proper margins to fit the table
+            pageBreak: 'auto', // Automatically add page breaks when needed
+            didDrawPage: function (data) {
+                // Add a footer with the page number
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                doc.text(`Page ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            }
+        });
+        
+        // Save the PDF file
+        doc.save('Biogas_Plant_Report.pdf');
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Create the Power Consumption vs Power Cost chart
+        const powerCtx = document.getElementById('powerChart').getContext('2d');
+        
+        // Parse the monthly data from Django view with better error handling
+        const monthlyData = [
+            {% for data in monthly_data %}
+                {
+                    month: "{{ data.month|escapejs }}",
+                    powerConsumption: {{ data.power_consumption|default:0|floatformat:2 }},
+                    powerCost: {{ data.power_cost|default:0|floatformat:2 }}
+                }{% if not forloop.last %},{% endif %}
+            {% empty %}
+                {
+                    month: "No Data",
+                    powerConsumption: 0,
+                    powerCost: 0
+                }
+            {% endfor %}
+        ];
+        
+        // Transform data into Chart.js format
+        const months = monthlyData.map(data => data.month);
+        const powerConsumptionData = monthlyData.map(data => parseFloat(data.powerConsumption) || 0);
+        const powerCostData = monthlyData.map(data => parseFloat(data.powerCost) || 0);
+        
+        // Destroy existing chart if it exists
+        if (window.powerChart instanceof Chart) {
+            window.powerChart.destroy();
+        }
+        
+        // Create the power chart with scatter plot option for individual points
+        window.powerChart = new Chart(powerCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Power Consumption (kWh)',
+                    data: powerConsumptionData,
+                    backgroundColor: 'rgba(255, 159, 64, 0.8)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    yAxisID: 'y1',
+                    tension: 0,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    showLine: true
+                }, {
+                    label: 'Power Cost',
+                    data: powerCostData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    yAxisID: 'y2',
+                    tension: 0,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    showLine: true
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'point',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Individual Data Points - Power Consumption vs Cost'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return 'Record: ' + context[0].label;
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y.toFixed(2);
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Records (Date-Shift)'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Power Consumption (kWh)'
+                        },
+                        beginAtZero: true
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Power Cost'
+                        },
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Create the Bags Generated per Hour/Shift chart
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        
+        // Parse the hourly data from Django view with better error handling
+        const hourlyData = [
+            {% for data in hourly_data %}
+                {
+                    hour: "{{ data.hour|escapejs }}",
+                    bags: {{ data.bags|default:0 }}
+                }{% if not forloop.last %},{% endif %}
+            {% empty %}
+                {
+                    hour: "No Data",
+                    bags: 0
+                }
+            {% endfor %}
+        ];
+        
+        // Transform data into Chart.js format
+        const hours = hourlyData.map(data => data.hour);
+        const bagsData = hourlyData.map(data => parseInt(data.bags) || 0);
+        
+        // Destroy existing chart if it exists
+        if (window.hourlyChart instanceof Chart) {
+            window.hourlyChart.destroy();
+        }
+        
+        // Create the bags chart with individual data points
+        window.hourlyChart = new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: hours,
+                datasets: [{
+                    label: 'Bags Generated',
+                    data: bagsData,
+                    backgroundColor: hours.map((_, index) => 
+                        `hsla(${(index * 360 / hours.length)}, 70%, 60%, 0.8)`
+                    ),
+                    borderColor: hours.map((_, index) => 
+                        `hsla(${(index * 360 / hours.length)}, 70%, 50%, 1)`
+                    ),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Individual Records - Bags Generated'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return 'Record: ' + context[0].label;
+                            },
+                            label: function(context) {
+                                return 'Bags: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Bags'
+                        },
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Individual Records (Date-Shift)'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Debug information (remove in production)
+        console.log('Monthly Data:', monthlyData);
+        console.log('Hourly Data:', hourlyData);
+        console.log('Charts initialized successfully');
+    });
+</script>
+{% endblock %}

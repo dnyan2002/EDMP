@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% load static %}
+    <meta name="generator" content="pdf2htmlEX"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+        
+    <title>{% block title %}Admin Dashboard{% endblock %}</title>
+    <meta name="description" content="Admin Dashboard">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    {% block styles %}{% endblock %}
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --topbar-height: 100px;
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+            --sidebar-dark: #212529;
+            --body-bg: #f8f9fc;
+        }
+        
+        body {
+            font-family: 'Nunito', 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--body-bg);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        #sidebar-wrapper {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-dark);
+            transition: all 0.3s;
+            z-index: 999;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        #sidebar-wrapper .sidebar-heading {
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        #sidebar-wrapper .list-group {
+            width: 100%;
+        }
+        
+        .sidebar-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.8rem 1.25rem;
+            display: flex;
+            margin-top: 8px;
+            align-items: center;
+            transition: all 0.2s;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .sidebar-link i {
+            margin-right: 10px;
+            font-size: 1rem;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .sidebar-dropdown .sidebar-submenu {
+            display: none;
+        }
+        
+        .sidebar-dropdown.active .sidebar-submenu {
+            display: block;
+        }
+        
+        .sidebar-submenu {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar-submenu .sidebar-link {
+            padding-left: 3rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Navbar Styles */
+        #topbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            height: var(--topbar-height);
+            background-color: var(--sidebar-dark);
+            color: #fff;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            z-index: 998;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+        }
+        
+        .topbar-divider {
+            height: calc(var(--topbar-height) - 2rem);
+            border-right: 1px solid #e3e6f0;
+            margin: 0 1rem;
+        }
+        
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-user-info .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-right: 0.5rem;
+        }
+        
+        .nav-user-info .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .navbar-search {
+            position: relative;
+        }
+        
+        .navbar-search input {
+            border-radius: 2rem;
+            padding-left: 2.5rem;
+            background-color: #f8f9fc;
+            border: 1px solid #e3e6f0;
+        }
+        
+        .navbar-search .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 1rem;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+        
+        /* Main Content */
+        #content-wrapper {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--topbar-height);
+            min-height: 100vh;
+            transition: all 0.3s;
+            width: calc(100% - var(--sidebar-width));
+        }
+        
+        .dashboard-content {
+            padding: 1.5rem;
+        }
+        
+        /* Dashboard Cards */
+        .card-dashboard {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-header h6 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+
+        
+        /* Utilities */
+        .live-clock {
+            font-size: 1.1rem;
+            color: var(--sidebar-dark-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .live-clock i {
+            margin-right: 0.5rem;
+        }
+        .at-logo {
+            width: 30px;
+            height: 30px;
+            padding: 1px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 991.98px) {
+            #sidebar-wrapper {
+                transform: translateX(-100%);
+            }
+            
+            #sidebar-wrapper.active {
+                transform: translateX(0);
+            }
+            
+            #content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            #content-wrapper.active {
+                margin-left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
+            }
+            
+            #topbar {
+                left: 0;
+            }
+            
+            #topbar.active {
+                left: var(--sidebar-width);
+            }
+            
+            .navbar-search {
+                width: auto;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .navbar-search {
+                display: none;
+            }
+        }
+        
+        /* Modal styles */
+        .modal-content {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        /* Notifications dropdown
+        .dropdown-notifications {
+            min-width: 20rem;
+            padding: 0;
+        }
+        
+        .dropdown-notifications .dropdown-item {
+            white-space: normal;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .dropdown-notifications .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-notifications .notification-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .notification-text {
+            font-size: 0.85rem;
+        }
+        
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--secondary-color);
+        }
+         */
+        /* Collapse trigger */
+        #sidebarToggle {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+        }
+        
+        #sidebarToggleTop {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            display: none;
+        }
+        
+        @media (max-width: 991.98px) {
+            #sidebarToggleTop {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading">
+            <span><img src="{% static 'images/echodhara_icon.png' %}" alt=""></span>
+        </div>
+        
+        <div class="list-group">
+            <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            
+            <a href="{% url 'home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fas fa-flask"></i> Slurry Section
+            </a>
+            
+            <a href="{% url 'pid_data' %}" class="sidebar-link {% if request.resolver_match.url_name == 'pid_data' %}active{% endif %}">
+                <i class="fas fa-filter"></i> Purification
+            </a>
+            
+            <div class="sidebar-dropdown">
+                <a href="#" class="sidebar-link dropdown-toggle {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> Reports
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <div class="sidebar-submenu">
+                    <a href="{% url 'report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Biogas Produced
+                    </a>
+                    <a href="{% url 'feedstock_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'feedstock_report' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Feedstock Report
+                    </a>
+                    <a href="{% url 'powerconsumption_report' %}" class="sidebar-link {% if request.resolver_match.url_name == 'powerconsumption_report' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Power Consumption Report
+                    </a>
+                    <a href="{% url 'running_hours' %}" class="sidebar-link {% if request.resolver_match.url_name == 'running_hours' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Running Hours Report
+                    </a>
+                </div>
+            </div>
+            <a href="{% url 'driver_status' %}" class="sidebar-link {% if request.resolver_match.url_name == 'driver_status' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i> Driver Status
+            </a>
+            {% if request.user.is_authenticated and request.user.is_staff %}
+                <a href="{% url 'create_user' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            {% endif %}
+
+            {% comment %} <a href="{% url 'create_user' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_user' %}active{% endif %}">
+                <i class="fas fa-users"></i> Users
+            </a> {% endcomment %}
+            <a href="{% url 'manual_entry' %}" class="sidebar-link {% if request.resolver_match.url_name == 'manual_entry' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i> Manual Entry
+            </a>
+
+            {% if request.user.is_authenticated and request.user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="sidebar-link">
+                    <i class="fas fa-cogs"></i> Admin Panel
+                </a>
+            {% endif %}
+          <!-- Contact Modal -->
+                <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#contactModal">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+            
+            <a href="{% url 'logout' %}" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- TopBar -->
+    <div id="topbar">
+        
+        <div >
+            <h2>Cloud Based Reporting System</h2>
+        </div>
+        
+        <div class="d-flex align-items-center">
+            <div class="live-clock me-3">
+                <i class="far fa-calendar-alt"></i>
+                <span id="date">DD-MM-YYYY</span>
+                <span class="mx-2">|</span>
+                <i class="far fa-clock"></i>
+                <span id="clock">00:00:00</span>
+            </div>
+            
+            <div class="topbar-divider"></div>
+            
+            <!-- User Dropdown -->
+            <div class="dropdown ms-3">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <!-- <span class="d-none d-lg-inline text-gray-600 small me-2">Welcome User</span> -->
+                    <img class="img-profile rounded-circle" src="{% static 'images/echodhara.png' %}" width="32" height="32" alt="User Avatar">
+                </a>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div id="content-wrapper">
+        <div class="dashboard-content">
+            {% block content %}
+            {% endblock %}
+        </div>
+<!-- Footer -->
+<footer class="sticky-footer bg-white mt-auto">
+    <div class="container my-auto">
+        <div class="copyright text-center my-auto">
+            <span>Developed by Team AT <img class="at-logo" src="{% static 'images/at_logo.jpeg' %}" alt=""></span>
+        </div>
+    </div>
+</footer>
+</div>
+
+
+  
+  <!-- Contact Modal -->
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+  
+        <!-- Optional Header (you can remove if you don't need a title) -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="contactModalLabel">Contact Echodhara</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+  
+        <!-- Body -->
+        <div class="modal-body text-center">
+          <img src="{% static 'images/echodhara_logo.png' %}" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;">
+          <h6>Echodhara Magnatek</h6>
+          <p class="mb-1"><i class="fas fa-phone"></i> +91 9865450000</p>
+          <p class="mb-1">
+            <i class="fas fa-globe"></i>
+            <a href="https://ecodharamagnatek.com/" target="_blank">ecodharamagnatek.com</a>
+          </p>
+          <p>
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:admin@echodhara.com">admin@echodhara.com</a>
+          </p>
+        </div>
+  
+        {% comment %} <!-- Optional Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div> {% endcomment %}
+  
+      </div>
+    </div>
+  </div>
+
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Chart.js - Uncomment if you need charts -->
+
+<!-- Custom JavaScript -->
+<script>
+// Live Date and Time with Indian format
+function updateClock() {
+    const now = new Date();
+    
+    // Update date in Indian format (DD/MM/YYYY)
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const dateStr = `${day}-${month}-${year}`;
+    document.getElementById('date').textContent = dateStr;
+    
+    // Update time in 24-hour format
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}:${seconds}`;
+    document.getElementById('clock').textContent = timeStr;
+    
+    setTimeout(updateClock, 1000);
+}
+
+// Initialize functions when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date and time
+    updateClock();
+    
+    // Sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarToggleTop = document.getElementById('sidebarToggleTop');
+    const sidebarWrapper = document.getElementById('sidebar-wrapper');
+    const contentWrapper = document.getElementById('content-wrapper');
+    const topbar = document.getElementById('topbar');
+    
+    function toggleSidebar() {
+        sidebarWrapper.classList.toggle('active');
+        contentWrapper.classList.toggle('active');
+        topbar.classList.toggle('active');
+    }
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    if (sidebarToggleTop) {
+        sidebarToggleTop.addEventListener('click', toggleSidebar);
+    }
+    
+    // Dropdown toggle for sidebar submenus
+    const dropdownToggles = document.querySelectorAll('.sidebar-dropdown .dropdown-toggle');
+    
+    dropdownToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const parent = this.parentElement;
+            parent.classList.toggle('active');
+        });
+    });
+    
+    // Initialize tooltips if Bootstrap's tooltip component is used
+    try {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    } catch (e) {
+        console.log('Tooltip initialization skipped');
+    }
+    
+    // Check for mobile size on load and resize
+    function checkWindowSize() {
+        if (window.innerWidth < 992) {
+            sidebarWrapper.classList.remove('active');
+            contentWrapper.classList.remove('active');
+            topbar.classList.remove('active');
+        } else {
+            sidebarWrapper.classList.add('active');
+            contentWrapper.classList.add('active');
+            topbar.classList.add('active');
+        }
+    }
+    
+    window.addEventListener('resize', checkWindowSize);
+    checkWindowSize(); // Check on initial load
+});
+
+// Add custom scripts or chart initializations below
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

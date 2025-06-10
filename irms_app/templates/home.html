@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<title>SCADA Monitoring Dashboard</title>
+
+<div class="content">
+    <div id="page-container">
+        <div id="pf1" class="pf w0 h0" data-page-no="1">
+            <div class="pc pc1 w0 h0">
+                <!-- Background image -->
+                <div class="scada-container">
+                <img src="{% static 'images/scada.jpg' %}" alt="SCADA System Layout" class="scada-bg" />
+                <!-- Group 2 -->
+                <!-- <div class="box1" id="crusher3-box" style="top: 141px; left: 172px;"></div>
+                <div class="box1" id="crusher4-box" style="top: 141px; left: 200.5px;"></div> -->
+                
+                <!-- Group 3 -->
+                <div class="box2" id="crusher5-box" style="top: 244px; left: 61px;"></div>
+                
+                <!-- Group 4 -->
+                <!-- <div class="box3" id="crusher6-box" style="top: 215px; left: 302px;"></div> -->
+                <div class="box3" id="crusher7-box" style="top: 215px; left: 347.5px;"></div>
+                <div class="box3" id="crusher8-box" style="top: 215px; left: 382px;"></div>
+                
+                <!-- <div class="box4" id="crusher9-box" style="top: 90px; left: 626px;"></div>
+                <div class="box4" id="crusher10-box" style="top: 103px; left: 626px;"></div>
+                <div class="box4" id="crusher11-box" style="top: 117px; left: 626px;"></div>
+                
+                <div class="box5" id="crusher12-box" style="top: 204px; left: 634px;"></div>
+                <div class="box5" id="crusher13-box" style="top: 218px; left: 634px;"></div>
+                <div class="box5" id="crusher14-box" style="top: 229.5px; left: 634px;"></div>
+                
+                <div class="box6" id="crusher15-box" style="top: 215px; left: 816px;"></div>
+                <div class="box6" id="crusher16-box" style="top: 215px; left: 863px;"></div>
+                
+                <div class="box7" id="crusher18-box" style="top: 370px; left: 591px;"></div>
+                <div class="box7" id="crusher19-box" style="top: 370px; left: 560px;"></div>
+                
+                <div class="box8" id="crusher20-box" style="top: 157px; left: 738px;"></div>
+                <div class="box9" id="crusher21-box" style="top: 142px; left: 713px;"></div>
+                <div class="box10" id="crusher22-box" style="top: 103px; left: 712px;"></div>
+                <div class="box11" id="crusher23-box" style="top: 27px; left: 819px;"></div>
+                <div class="box12" id="crusher24-box" style="top: 26px; left: 430px;"></div> -->
+                <div class="box6" id="crusher17-box" style="top: 215px; left: 890px;"></div>
+                <div class="box7" id="crusher19-box" style="top: 370px; left: 560px;"></div>
+                <!-- Labels and measurements -->
+                <div class="c x0 y1 w2 h0">
+                    
+                    <!-- Measurement readings -->
+                        <div class="overlay" style="top: 3%; left: 9%;">{{ data.crusher1_naphier_tph }}</div>
+                    {% for item in crusher1_total %}
+                        <div class="overlay" style="top: 6%; left: 9%;">{{item.total_crusher}}</div>
+                    {% endfor %}
+                    <div class="overlay" style="top: 17.4%; left: 9%;">{{data.crusher2_naphier_tph}}</div>
+                    {% for item in crusher2_total %}
+                        <div class="overlay" style="top: 20.5%; left: 9%;">{{item.total_crusher}}</div>
+                    {% endfor %}
+                    <div class="overlay" style="top: 44%; left: 20.3%;">{{data.water_flow_meter1}},</div>
+                    <div class="overlay" style="top: 57%; left: 29.5%;">{{data.water_flow_meter2}}</div>
+                    <div class="overlay" style="top: 60%; left: 29.5%;">98.05</div>
+                    <div class="overlay" style="top: 87.5%; left: 34%;">{{data.bagging_unit}}</div>
+                    {% for item in fom_bag_total %}
+                        <div class="overlay" style="top: 90%; left: 34%;">{{item.fom_bag_total}}</div>
+                    {% endfor %}
+                    <div class="overlay" style="top: 47%; left: 20.3%;">50.75</div>
+                    <div class="overlay" style="top: 45%; left: 47%;">{{data.pt_slurry_flowmeter2}},</div>
+                    <div class="overlay" style="top: 48.5%; left: 47%;">70.32</div>
+                    <div class="overlay" style="top: 18.5%; left: 53%;">{{data.pt_slurry_flowmeter1}}</div>
+                    <div class="overlay" style="top: 21.5%; left: 53%;">60.10</div>
+                    <div class="overlay" style="top: 5%; left: 70%;">{{data.baloon1_pressure}}</div>
+                    <div class="overlay" style="top: 9%; left: 70%;">{{data.baloon1_lvl}}</div>
+                    <div class="overlay" style="top: 29.5%; left: 69.5%;">{{data.baloon2_pressure}}</div>
+                    <div class="overlay" style="top: 33%; left: 69.5%;">{{data.baloon2_lvl}}</div>
+                    <div class="overlay" style="top: 34%; left: 97.5%;">{{data.sls_slurry_flowmeter}},</div>
+                    <div class="overlay" style="top: 37%; left: 97.5%;">50.40</div>
+                    <div class="overlay" style="top: 74%; left: 83%;">{{data.baloon3_pressure}}</div>
+                    <div class="overlay" style="top: 80%; left: 83%;">{{data.baloon3_lvl}}</div>
+
+                    <!-- Additional readings -->
+                    <div class="overlay" style="top: 20.5%; left: 61%;">{{data.dt1_pr_tx_1}}</div>
+                    <div class="overlay" style="top: 43.5%; left: 61%;">{{data.dt1_pr_tx_2}}</div>
+                </div>
+            </div>
+            <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
+        </div>
+        </div>
+    </div>
+    <div class="loading-indicator"></div>
+</div>
+
+<!-- Status update script -->
+<script>
+    function updateBoxColors() {
+        // Set color indicators for crusher status (green = operating, red = stopped/issue)
+        // document.getElementById('crusher3-box').classList.add('green');
+        // document.getElementById('crusher4-box').classList.add('red');
+        document.getElementById('crusher5-box').classList.add('green');
+        // document.getElementById('crusher6-box').classList.add('red');
+        document.getElementById('crusher7-box').classList.add('green');
+        document.getElementById('crusher8-box').classList.add('red');
+        // document.getElementById('crusher9-box').classList.add('green');
+        // document.getElementById('crusher10-box').classList.add('red');
+        // document.getElementById('crusher11-box').classList.add('red');
+        // document.getElementById('crusher12-box').classList.add('green');
+        // document.getElementById('crusher13-box').classList.add('red');
+        // document.getElementById('crusher14-box').classList.add('green');
+        // document.getElementById('crusher15-box').classList.add('red');
+        // document.getElementById('crusher16-box').classList.add('green');
+        document.getElementById('crusher17-box').classList.add('red');
+        // document.getElementById('crusher18-box').classList.add('green');
+        document.getElementById('crusher19-box').classList.add('red');
+        // document.getElementById('crusher20-box').classList.add('red');
+        // document.getElementById('crusher21-box').classList.add('green');
+        // document.getElementById('crusher22-box').classList.add('red');
+        // document.getElementById('crusher23-box').classList.add('green');
+        // document.getElementById('crusher24-box').classList.add('red');
+
+        // Random status indicators for auxiliary equipment
+        let colors = ['green', 'red'];
+        for (let i = 1; i <= 12; i++) {
+            let randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById(`box${i}`).classList.add(randomColor);
+        }
+    }
+    window.onload = updateBoxColors;
+</script>
+
+<!-- Support for older browsers -->
+<script>
+(function(){
+    function b(a,b,e,f){var c=(a.className||"").split(/\s+/g);""===c[0]&&c.shift();var d=c.indexOf(b);0>d&&e&&c.push(b);0<=d&&f&&c.splice(d,1);a.className=c.join(" ");return 0<=d}if(!("classList"in document.createElement("div"))){var e={add:function(a){b(this.element,a,!0,!1)},contains:function(a){return b(this.element,a,!1,!1)},remove:function(a){b(this.element,a,!1,!0)},toggle:function(a){b(this.element,a,!0,!0)}};Object.defineProperty(HTMLElement.prototype,"classList",{get:function(){if(this._classList)return this._classList;
+    var a=Object.create(e,{element:{value:this,writable:!1,enumerable:!0}});Object.defineProperty(this,"_classList",{value:a,writable:!1,enumerable:!1});return a},enumerable:!0})}})();
+</script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const elements = document.querySelectorAll('.t');
+        
+        // Find the max width for right alignment
+        let maxWidth = 0;
+        
+        elements.forEach(element => {
+            maxWidth = Math.max(maxWidth, getTextWidth(element));
+        });
+
+        // Set all elements to have the same width and right-aligned
+        elements.forEach(element => {
+            element.style.width = `${maxWidth}px`;
+            element.style.textAlign = 'right';
+        });
+    });
+
+    // Helper function to calculate text width
+    function getTextWidth(element) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        context.font = window.getComputedStyle(element).font;
+        return context.measureText(element.textContent).width;
+    }
+</script>
+<script>
+    setTimeout(function() {
+        window.location.reload();
+        console.log("Refreshed")
+    }, 10000); // 60000 ms = 1 minute
+</script>
+{% endblock %}

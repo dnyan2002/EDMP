@@ -1,0 +1,655 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Global Styles */
+    body {
+        font-family: Arial, sans-serif;
+        padding-bottom: 60px;
+    }
+
+    /* Form Container */
+    .report-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px auto;
+        padding: 30px;
+        border: 1px solid #ccc;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        max-width: 1200px;
+    }
+
+    /* Form Fields */
+    .form-group {
+        flex: 1;
+        margin: 0 10px 15px 10px;
+        min-width: 150px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-group select,
+    .form-group input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Button Group */
+    .button-group {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    /* Button Styles */
+    .report-button,
+    .excel-button,
+    .pdf-button {
+        background-color: #062A63;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover,
+    .report-button:hover,
+    .excel-button:hover,
+    .pdf-button:hover {
+        background-color: #045191;
+    }
+
+    /* Charts Container */
+    .charts-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 20px auto;
+        max-width: 1200px;
+    }
+
+    .chart-section {
+        flex: 1;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-section h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 10px 0;
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table thead th {
+        background-color: #02366e;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+    }
+
+    .data-table tbody td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .data-table tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: #e0f7fa;
+    }
+
+    /* Scrollable Table Container */
+    #resultsContainer {
+        max-height: 400px;
+        overflow: auto;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        width: 97.4%;
+        margin: 20px auto;
+    }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px auto;
+        max-width: 1200px;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .summary-card h4 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .summary-card .value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .summary-card .unit {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    /* Different card colors */
+    .summary-card:nth-child(1) { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .summary-card:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .summary-card:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .summary-card:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .summary-card:nth-child(5) { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .summary-card:nth-child(6) { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+    .summary-card:nth-child(7) { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+        .charts-container {
+            flex-direction: column;
+        }
+        
+        .form-group {
+            flex: 100%;
+            margin: 10px 0;
+        }
+
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container">
+    <form class="report-form" id="filterForm" method="GET">
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" class="form-control" 
+                   value="{{ request.GET.date }}"
+                   onfocus="this.form.month.disabled=true; this.form.year.disabled=true;"
+                   onblur="if(!this.value) { this.form.month.disabled=false; this.form.year.disabled=false; }">
+        </div>
+        
+        <div class="form-group">
+            <label for="month"><b>Month</b></label>
+            <select id="month" name="month" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.year.value) { this.form.date.disabled=false; }">
+                <option value="">Select Month</option>
+                <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>January</option>
+                <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>February</option>
+                <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>March</option>
+                <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>April</option>
+                <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>May</option>
+                <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>June</option>
+                <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>July</option>
+                <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>August</option>
+                <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>September</option>
+                <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>October</option>
+                <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>November</option>
+                <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>December</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="year"><b>Year</b></label>
+            <select id="year" name="year" class="form-control" 
+                    onfocus="this.form.date.disabled=true;" 
+                    onblur="if(!this.value && !this.form.month.value) { this.form.date.disabled=false; }">
+                <option value="">Select Year</option>
+                {% for yr in years %}
+                <option value="{{ yr }}" {% if request.GET.year == yr|stringformat:"s" %}selected{% endif %}>{{ yr }}</option>
+                {% endfor %}
+            </select>
+        </div>            
+        
+        <div class="form-group" id="shift-group"> 
+            <label for="shift">Shift</label> 
+            <select id="shift" name="shift"> 
+                <option value="">All</option>
+                {% for shift in shifts %} 
+                    <option value="{{ shift.shift_name }}" {% if shift.shift_name == selected_shift %} selected {% endif %}> 
+                        {{ shift.shift_name }} 
+                    </option> 
+                {% endfor %} 
+            </select> 
+        </div>
+
+        <div class="button-group">
+            <button type="submit" id="generateReportButton" class="report-button">
+                <i class="fas fa-file-alt"></i> Generate Report
+            </button>
+            <button type="button" onclick="exportToExcel()" class="excel-button">
+                <i class="fas fa-file-excel"></i> Download Excel
+            </button>
+            <button type="button" onclick="exportToPDF()" class="pdf-button">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button type="submit" name="day" value="1" class="report-button">
+                <i class="fas fa-calendar-alt"></i> Day
+            </button>
+            <button type="submit" name="this_month" value="1" class="report-button">
+                <i class="fas fa-calendar-alt"></i> Month
+            </button>
+
+        </div>
+    </form>
+
+    <!-- Charts Container -->
+    {% if reports %}
+    <div class="charts-container">
+        <div class="chart-section">
+            <h3>Expected vs Actual Clean Gas Production</h3>
+            <div class="chart-container">
+                <canvas id="cleanGasChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-section">
+            <h3>Expected vs Actual CBG Production</h3>
+            <div class="chart-container">
+                <canvas id="cbgProductionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Display area for results -->
+    <div id="resultsContainer">
+        <table class='data-table' border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Expected Clean Gas (Nm³)</th>
+                    <th>Actual Clean Gas (Nm³)</th>
+                    <th>Expected CBG (kg)</th>
+                    <th>Actual CBG (kg)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.shift }}</td>
+                    <td>{{ r.expected_clean_gas_nm3|floatformat:1 }}</td>
+                    <td>{{ r.actual_clean_gas_nm3|floatformat:1 }}</td>
+                    <td>{{ r.expected_production_kg|floatformat:1 }}</td>
+                    <td>{{ r.actual_cbg_production_kg|floatformat:1 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px; color: #666;">
+                        No data available. Please select filters and generate report.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- jQuery and Chart.js -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+    // Export functions
+    function exportToExcel() {
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const excelData = [];
+        const rows = reportTable.querySelectorAll("thead tr, tbody tr");
+
+        rows.forEach((row, index) => {
+            const rowData = [];
+            row.querySelectorAll("th, td").forEach(cell => {
+                rowData.push(cell.textContent.trim());
+            });
+            excelData.push(rowData);
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+        worksheet["!cols"] = [
+            { wch: 12 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, 
+            { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 18 }
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Biogas Report');
+        XLSX.writeFile(workbook, 'Biogas_Plant_Report.xlsx');
+    }
+
+    function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape mode
+
+        doc.setFontSize(16);
+        doc.setTextColor(0, 51, 102);
+        doc.text("Biogas Plant Report", 14, 15);
+
+        const reportTable = document.querySelector(".data-table");
+        if (!reportTable) {
+            alert("Table not found!");
+            return;
+        }
+
+        const rows = Array.from(reportTable.querySelectorAll("tbody tr"));
+        if (rows.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        const pdfData = rows.map(row => 
+            Array.from(row.querySelectorAll("td")).map(cell => cell.textContent.trim())
+        );
+
+        const headers = [
+            ["Date", "Shift", "Expected Clean Gas", "Actual Clean Gas", "Expected CBG", "Actual CBG",]
+        ];
+
+        doc.autoTable({
+            head: headers,
+            body: pdfData,
+            startY: 25,
+            theme: 'striped',
+            styles: {
+                fontSize: 8,
+                cellPadding: 2,
+                halign: 'center',
+                overflow: 'linebreak',
+            },
+            headStyles: {
+                fillColor: [0, 51, 102],
+                textColor: [255, 255, 255],
+                fontSize: 9,
+                fontStyle: 'bold',
+                halign: 'center',
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240]
+            },
+            margin: { top: 25, left: 10, right: 10 },
+        });
+        
+        doc.save('Biogas_Plant_Report.pdf');
+    }
+
+    // Form field toggles
+    document.addEventListener("DOMContentLoaded", function () {
+        const dateInput = document.getElementById("date");
+        const monthSelect = document.getElementById("month");
+        const yearSelect = document.getElementById("year");
+
+        function toggleFields() {
+            if (dateInput.value) {
+                monthSelect.disabled = true;
+                yearSelect.disabled = true;
+                monthSelect.value = "";
+                yearSelect.value = "";
+            } else if (monthSelect.value && yearSelect.value) {
+                dateInput.disabled = true;
+                dateInput.value = "";
+            } else {
+                dateInput.disabled = false;
+                monthSelect.disabled = false;
+                yearSelect.disabled = false;
+            }
+        }
+
+        dateInput.addEventListener("change", toggleFields);
+        monthSelect.addEventListener("change", toggleFields);
+        yearSelect.addEventListener("change", toggleFields);
+        toggleFields();
+    });
+
+    // Chart creation
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if reports %}
+        // Prepare data from Django context
+        const reportDates = {{ chart_dates|safe }};
+        const expectedCleanGasData = {{ expected_clean_gas_data|safe }};
+        const actualCleanGasData = {{ actual_clean_gas_data|safe }};
+        const expectedCbgData = {{ expected_production_data|safe }};
+        const actualCbgData = {{ actual_production_data|safe }};
+
+        // Clean Gas Chart
+        const ctx1 = document.getElementById('cleanGasChart');
+        if (ctx1) {
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: reportDates,
+                    datasets: [
+                        {
+                            label: 'Expected Clean Gas (nm³)',
+                            data: expectedCleanGasData,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: false,
+                            pointBackgroundColor: '#28a745',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Actual Clean Gas (nm³)',
+                            data: actualCleanGasData,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: false,
+                            pointBackgroundColor: '#007bff',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' nm³';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Production (nm³)'
+                            },
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // CBG Production Chart
+        const ctx2 = document.getElementById('cbgProductionChart');
+        if (ctx2) {
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: reportDates,
+                    datasets: [
+                        {
+                            label: 'Expected CBG Production (kg)',
+                            data: expectedCbgData,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: false,
+                            pointBackgroundColor: '#28a745',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Actual CBG Production (kg)',
+                            data: actualCbgData,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: false,
+                            pointBackgroundColor: '#007bff',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' kg';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Production (kg)'
+                            },
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        {% endif %}
+    });
+</script>
+
+{% endblock %}

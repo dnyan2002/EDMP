@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container my-1">
+  <h2 class="mb-4 text-center">Cost Management</h2>
+
+  <!-- First Row: Feedstock Cost and Power Cost -->
+  <div class="row g-0">
+    <!-- Feedstock Cost Card -->
+    <div class="col-md-6 d-flex justify-content-center">  
+       <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">   
+             <div class="card-header bg-primary text-white text-center fw-bold">
+          Feedstock Cost
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ feed_form.management_form }}
+            <div class="mb-3">
+              {{ feed_form.cost_per_ton.label_tag }}
+              {{ feed_form.cost_per_ton|add_class:"form-control" }}
+            </div>
+            <button type="submit" name="feedstock_submit" class="btn btn-primary w-100">Save</button>
+          </form>
+        </div>
+        <div class="card-footer bg-light">
+          {% if feedstock_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in feedstock_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.cost_per_ton }} per ton</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Power Cost Card -->
+    <div class="col-md-6 d-flex justify-content-center">  
+        <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">  
+        <div class="card-header bg-success text-white text-center fw-bold">
+          Power Cost
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ power_form.cost_per_unit.label_tag }}
+              {{ power_form.cost_per_unit|add_class:"form-control" }}
+            </div>
+            <button type="submit" name="power_submit" class="btn btn-success w-100">Save</button>
+          </form>
+        </div>
+        <div class="card-footer bg-light">
+          {% if power_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in power_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.cost_per_unit }} per unit</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second Row: CBG & FOM Sale/Dispatch -->
+  <div class="row g-4 mt-3">
+
+    <!-- CBG Sale/Dispatch Card -->
+    <div class="col-md-6 d-flex justify-content-center">  
+        <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">  
+        <div class="card-header bg-warning text-dark text-center fw-bold">
+          CBG Sale/Dispatch
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ cbg_form.dispatch_quantity.label_tag }}
+              {{ cbg_form.dispatch_quantity|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+              {{ cbg_form.unit.label_tag }}
+              {{ cbg_form.unit|add_class:"form-control" }}
+            </div>
+            <button type="submit" name="cbg_submit" class="btn btn-warning w-100 text-white">Save</button>
+          </form>
+        </div>
+        <div class="card-footer bg-light">
+          {% if cbg_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in cbg_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.dispatch_quantity }} {{ entry.unit }}</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- FOM Sale/Dispatch Card -->
+    <div class="col-md-6 d-flex justify-content-center">  
+        <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">  
+        <div class="card-header bg-info text-white text-center fw-bold">
+          FOM Sale/Dispatch
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ fom_form.dispatch_quantity.label_tag }}
+              {{ fom_form.dispatch_quantity|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+              {{ fom_form.unit.label_tag }}
+              {{ fom_form.unit|add_class:"form-control" }}
+            </div>
+            <button type="submit" name="fom_submit" class="btn btn-info w-100 text-white">Save</button>
+          </form>          
+        </div>
+        <div class="card-footer bg-light">
+          {% if fom_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in fom_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.dispatch_quantity }} {{ entry.unit }}</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="row g-4 mt-3">
+  <!-- Hourly Expected Clean Gas Production -->
+  <div class="col-md-6 d-flex justify-content-center">
+    <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">
+      <div class="card-header bg-secondary text-white text-center fw-bold">
+        Hourly Expected Clean Gas Production
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ expected_cleangas_production_form.clean_gas_production.label_tag }}
+            {{ expected_cleangas_production_form.clean_gas_production|add_class:"form-control" }}
+          </div>
+          <div class="mb-3">
+            {{ expected_cleangas_production_form.unit.label_tag }}
+            {{ expected_cleangas_production_form.unit|add_class:"form-control" }}
+          </div>
+          <button type="submit" name="expected_clean_gas_submit" class="btn btn-secondary w-100 mt-3">Save</button>
+        </form>
+      </div>
+      <div class="card-footer bg-light">
+          {% if expected_cleangas_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in expected_cleangas_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.clean_gas_production }} {{ entry.unit }}</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+    </div>
+  </div>
+
+  <!-- Hourly Expected CBG Production -->
+  <div class="col-md-6 d-flex justify-content-center">
+    <div class="card h-100 shadow border-0" style="width: 93%; max-width: 420px;">
+      <div class="card-header bg-dark text-white text-center fw-bold">
+        Hourly Expected CBG Production
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ expected_cbg_form.cbg_production.label_tag }}
+            {{ expected_cbg_form.cbg_production|add_class:"form-control" }}
+          </div>
+          <div class="mb-3">
+            {{ expected_cbg_form.unit.label_tag }}
+            {{ expected_cbg_form.unit|add_class:"form-control" }}
+          </div>
+          <button type="submit" name="expected_cbg_submit" class="btn btn-dark w-100 mt-3">Save</button>
+        </form>
+      </div>
+      <div class="card-footer bg-light">
+          {% if expected_cbg_entries %}
+            <p class="mb-1 fw-bold">Last 5 Entries:</p>
+            <ul class="list-group list-group-flush small">
+              {% for entry in expected_cbg_entries %}
+                <li class="list-group-item py-1 d-flex justify-content-between align-items-center">
+                  <span>{{ entry.cbg_production }} {{ entry.unit }}</span>
+                  <small class="text-muted">{{ entry.date_recorded|date:"M d, Y" }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-center text-muted small">No previous entries</p>
+          {% endif %}
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
